@@ -84,6 +84,7 @@ export function weekDayNames(firstDayOfWeek = 0) {
 }
 
 export function page(date, firstDayOfWeek = 0, showSixWeeks = false) {
+	//days [1-31]
     const days = month(date);
     let before = [];
     let after = [];
