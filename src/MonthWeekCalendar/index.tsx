@@ -1,12 +1,12 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Animated, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity } from 'react-native';
 import XDate from 'xdate';
 import InfiniteList from '../InfiniteList';
 import WeekDaysNames from './WeekDaysNames';
 import CalendarContext from '../Context';
 import styleConstructor from '../Utils/style';
 import constants from '../Utils/constants';
-import { sameWeek, toMarkingFormat, page } from '../Utils';
+import { sameWeek, toMarkingFormat, page, getWeekDates } from '../Utils';
 import { MonthWeekCalendarProps } from './type'
 
 const { width: windowWith } = Dimensions.get('window');
@@ -17,13 +17,12 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = ({
 	...props
 }) => {
 
-
+	const mode = useRef('month');
+	const [calendarMode, setCalendarMode] = useState('month');
 	const animatedContainerHeight = useRef(new Animated.Value((windowWith / 7) * 5));
 	const { current, firstDay = 0, markedDates, allowShadow = true, hideDayNames, theme, calendarWidth, testID, initialDate } = props;
 
 	const [items, setItems] = useState(getDatesArray(initialDate, NUMBER_OF_PAGES));
-
-	const context = useContext(CalendarContext);
 	const style = useRef(styleConstructor(theme));
 	const list = useRef();
 	const extraData = {
@@ -52,7 +51,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = ({
 
 
 	const onPageChange = useCallback((a) => {
-		console.log('items[]', items[a])
 		// if (scrolledByUser) {
 		//     context?.setDate(items[pageIndex], UpdateSources.WEEK_SCROLL);
 		// }
@@ -66,8 +64,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = ({
 
 
 	const renderItem = useCallback((_type, item) => {
-		const pageData = page(new XDate(item)) ?? [];
-		console.log(pageData)
+		const pageData = page(new XDate(item)) ?? []
 		return (
 			<View style={[styles.page]}>
 				{
@@ -88,7 +85,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = ({
 	// render
 	const renderKnob = () => {
 		return (
-			<View style={styles.knobContainer} {...panResponder.panHandlers}>
+			<View style={[styles.knobContainer, { backgroundColor: 'gold'}]} {...panResponder.panHandlers}>
 				<View style={[styles.knob]}></View>
 			</View>
 		)
@@ -135,7 +132,15 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = ({
 			},
 			onPanResponderTerminationRequest: (evt, gestureState) => true,
 			onPanResponderRelease: (evt, gestureState) => {
-				console.log('抬起')
+				if(evt.nativeEvent.pageY < ((windowWith / 7) * 5)/2){
+					animatedContainerHeight.current.setValue(windowWith / 7)
+					setCalendarMode('week')
+					return;
+				}else{
+					animatedContainerHeight.current.setValue((windowWith / 7) * 5)
+					setCalendarMode('month')
+					return;
+				}
 				// 用户放开了所有的触摸点，且此时视图已经成为了响应者。
 				// 一般来说这意味着一个手势操作已经成功完成。
 			},
@@ -157,6 +162,21 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = ({
 		outputRange: [-(windowWith / 7) * 1, 0]
 	})
 
+	/**
+	 *  监听月周切换
+	 */
+	useEffect(() => {
+
+		if(calendarMode === 'week'){
+			console.log('object :>> ', getWeekDatesArray('2023-03-02', 0)); 
+			return;
+		}
+
+		if(calendarMode === 'month'){
+			return;
+		}
+	  
+	}, [calendarMode])
 
 	return (
 		<View testID={testID} style={[styles.containerWrapper]}>
@@ -221,7 +241,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		width: '100%',
-		height: 10,
+		height: 24,
 		backgroundColor: 'white',
 	},
 	knob: {
@@ -252,3 +272,27 @@ function getDatesArray(date, numberOfPages = NUMBER_OF_PAGES) {
 	return array;
 }
 
+
+
+function getWeekDate(date, firstDay, weekIndex) {
+    // const d = new XDate(current || context.date);
+    const d = new XDate(date);
+    // get the first day of the week as date (for the on scroll mark)
+    let dayOfTheWeek = d.getDay();
+    if (dayOfTheWeek < firstDay && firstDay > 0) {
+        dayOfTheWeek = 7 + dayOfTheWeek;
+    }
+    // leave the current date in the visible week as is
+    const dd = weekIndex === 0 ? d : d.addDays(firstDay - dayOfTheWeek);
+    const newDate = dd.addWeeks(weekIndex);
+    return toMarkingFormat(newDate);
+}
+// function getDatesArray(args: WeekCalendarProps, numberOfPages = NUMBER_OF_PAGES) => {
+function getWeekDatesArray(date, firstDay, numberOfPages = NUMBER_OF_PAGES) {
+    const array = [];
+    for (let index = -numberOfPages; index <= numberOfPages; index++) {
+        const d = getWeekDate(date, firstDay, index);
+        array.push(d);
+    }
+    return array;
+}

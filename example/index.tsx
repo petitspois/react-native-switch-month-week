@@ -5,7 +5,7 @@ import MonthWeekCalendarProvider from '../src/Context/Provider';
 
 const Example = () => {
     return (
-        <MonthWeekCalendar  date="2023-02-03" />
+        <MonthWeekCalendar date="2023-02-03" />
     )
 }
 
