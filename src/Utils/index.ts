@@ -58,7 +58,7 @@ export function formatNumbers(date) {
     const numbers = getLocale().numbers;
     return numbers ? date.toString().replace(latinNumbersPattern, (char) => numbers[+char]) : date;
 }
-function fromTo(a, b) {
+function fromTo(a: Date, b: Date) {
     const days = [];
     let from = +a;
     const to = +b;
@@ -83,6 +83,12 @@ export function weekDayNames(firstDayOfWeek = 0) {
     return weekDaysNames;
 }
 
+export const getMonthCols = (dateStr: string) => {
+    const date = new XDate(dateStr);
+    const days = month(date);
+    return Math.ceil((days[0].getDay() + days.length)/7)
+}
+
 export function page(date, firstDayOfWeek = 0, showSixWeeks = false) {
 	//days [1-31]
     const days = month(date);
@@ -93,6 +99,7 @@ export function page(date, firstDayOfWeek = 0, showSixWeeks = false) {
     firstDayOfWeek = firstDayOfWeek || 0;
     const from = days[0].clone();
     const daysBefore = from.getDay();
+
     if (from.getDay() !== fdow) {
         from.addDays(-(from.getDay() + 7 - fdow) % 7);
     }
