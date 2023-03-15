@@ -24,7 +24,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = ({
 	const animatedContainerHeight = useRef(new Animated.Value(gridBound * 5));
 	const { current, firstDay = 0, markedDates, allowShadow = true, hideDayNames, theme, calendarWidth, testID, initialDate } = props;
 
-	const [items, setItems] = useState(getDatesArray(initialDate, 'week', NUMBER_OF_PAGES));
+	const [items, setItems] = useState(getDatesArray(initialDate, 'month', NUMBER_OF_PAGES));
 	const style = useRef(styleConstructor(theme));
 	const list = useRef();
 	const extraData = {
@@ -53,9 +53,10 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = ({
 
 
 	const onPageChange = useCallback((pageIndex, _prevPage, { scrolledByUser }) => {
-		if (scrolledByUser) {
+		console.log('items[pageIndex] :>> ', items[pageIndex]);
+		if (scrolledByUser && calendarMode === 'month') {
+			// 动态更新month高度
 			colsRef.current = getMonthCols(items[pageIndex]);
-
 			Animated.timing(animatedContainerHeight.current, {
                 toValue: getMonthCols(items[pageIndex])*gridBound, 
                 duration: 400,
@@ -74,7 +75,8 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = ({
 
 
 	const renderItem = useCallback((_type, item) => {
-		const pageData = page(new XDate(item)) ?? []
+		const pageData = calendarMode === 'week' ? getWeekDates(item) : page(new XDate(item)) ?? []
+		console.log('pageData :>> ', item, pageData);
 		return (
 			<View style={[styles.page]}>
 				{
@@ -178,9 +180,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = ({
 		})
 	).current;
 
-	animatedContainerHeight.current.addListener(()=>{
-		console.log('2 :>> ', 2);
-	})
 
 
 	const translateInnerY = animatedContainerHeight.current.interpolate({
@@ -194,18 +193,17 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = ({
 	useEffect(() => {
 
 		if(calendarMode === 'week'){
-			console.log('calendarMode :>> ', calendarMode);
+			console.log('calendarMode :>> ', getDatesArray('', 'week'));
+			setItems(getDatesArray('', 'week'))
 			return;
 		}
 
 		if(calendarMode === 'month'){
-			console.log('calendarMode :>> ', calendarMode);
 			return;
 		}
 	  
 	}, [calendarMode])
 
-	console.log('items :>> ', items);
 
 	return (
 		<View testID={testID} style={[styles.containerWrapper]}>
@@ -283,14 +281,7 @@ const styles = StyleSheet.create({
 })
 
 
-function getDate(date: string, index: number) {
-	const d = new XDate(date);
-	d.addMonths(index, true);
-	// if (index !== 0) {
-	d.setDate(1);
-	// }
-	return toMarkingFormat(d);
-}
+
 
 function getDatesArray(date: string, type: 'month'| 'week',  numberOfPages: number = NUMBER_OF_PAGES) {
 	const d = date || new XDate().toString();
@@ -302,6 +293,14 @@ function getDatesArray(date: string, type: 'month'| 'week',  numberOfPages: numb
 	return array;
 }
 
+function getDate(date: string, index: number) {
+	const d = new XDate(date);
+	d.addMonths(index, true);
+	// if (index !== 0) {
+	d.setDate(1);
+	// }
+	return toMarkingFormat(d);
+}
 
 
 function getWeekDate(date: string, firstDay: number, weekIndex: number) {
