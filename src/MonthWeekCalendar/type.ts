@@ -1,6 +1,8 @@
-/// <reference types="react" />
 export interface MonthWeekCalendarProps {
     /** Initial date in 'yyyy-MM-dd' format. Default = now */
-    date: string;
-    itemWidth: number;
+    initialDate?: string;
+    boxWidth?: number;
+    onMonthChange?: (date: string) => void;
 }
+
+export type Mode = 'week' | 'month';

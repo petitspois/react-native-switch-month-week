@@ -1,67 +1,45 @@
-import omit from 'lodash/omit';
-import isEqual from 'lodash/isEqual';
-import some from 'lodash/some';
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native'
+import React from 'react'
 import XDate from 'xdate';
-import React, { useMemo } from 'react';
-import { formatNumbers, isToday, xdateToData } from '../../Utils';
-import { getDefaultLocale } from '../../Utils/services';
-// @ts-expect-error
-import { SELECT_DATE_SLOT } from '../../Utils/testIDs';
-import BasicDay from '../Basic';
-import PeriodDay from '../Period';
-function areEqual(prevProps, nextProps) {
-    const prevPropsWithoutMarkDates = omit(prevProps, 'marking');
-    const nextPropsWithoutMarkDates = omit(nextProps, 'marking');
-    const didPropsChange = some(prevPropsWithoutMarkDates, function (value, key) {
-        //@ts-expect-error
-        return value !== nextPropsWithoutMarkDates[key];
-    });
-    const isMarkingEqual = isEqual(prevProps.marking, nextProps.marking);
-    return !didPropsChange && isMarkingEqual;
+
+const { width: windowWidth } = Dimensions.get('window');
+
+let a = 0;
+const areEqual = (prevProps, nextProps) => {
+    if(
+        nextProps.current === nextProps.date.toString('yyyy-MM-dd') ||
+        prevProps.current === nextProps.date.toString('yyyy-MM-dd')
+    ) {
+        return false;
+    }
+    return true;
 }
-const Day = React.memo((props) => {
-    const { date, marking, dayComponent, markingType } = props;
-    const _date = date ? new XDate(date) : undefined;
-    const _isToday = isToday(_date);
-    const markingAccessibilityLabel = useMemo(() => {
-        let label = '';
-        if (marking) {
-            if (marking.accessibilityLabel) {
-                return marking.accessibilityLabel;
-            }
-            if (marking.selected) {
-                label += 'selected ';
-                if (!marking.marked) {
-                    label += 'You have no entries for this day ';
-                }
-            }
-            if (marking.marked) {
-                label += 'You have entries for this day ';
-            }
-            if (marking.startingDay) {
-                label += 'period start ';
-            }
-            if (marking.endingDay) {
-                label += 'period end ';
-            }
-            if (marking.disabled || marking.disableTouchEvent) {
-                label += 'disabled ';
-            }
-        }
-        return label;
-    }, [marking]);
-    const getAccessibilityLabel = useMemo(() => {
-        const today = getDefaultLocale().today || 'today';
-        const formatAccessibilityLabel = getDefaultLocale().formatAccessibilityLabel || 'dddd d MMMM yyyy';
-        return `${_isToday ? today : ''} ${_date?.toString(formatAccessibilityLabel)} ${markingAccessibilityLabel}`;
-    }, [_date, marking, _isToday]);
-    const Component = dayComponent || (markingType === 'period' ? PeriodDay : BasicDay);
-    const dayComponentProps = dayComponent ? { date: xdateToData(date || new XDate()) } : undefined;
+
+const Day = React.memo((props:any) => {
+    const { onDayPress, current, date, style } = props;
+    console.log('current :>> ', current);
     return (
-    //@ts-expect-error
-    <Component {...props} accessibilityLabel={getAccessibilityLabel} testID={`${SELECT_DATE_SLOT}-${date}`} {...dayComponentProps}>
-      {formatNumbers(_date?.getDate())}
-    </Component>);
-}, areEqual);
-export default Day;
-Day.displayName = 'Day';
+        <TouchableOpacity onPress={() => onDayPress(date)}>
+            <View style={[styles.itemContainer, style]} key={date.toString('yyyy-MM-dd')}>
+                <View style={[{ width: '60%', height: '60%', justifyContent: 'center', alignItems: 'center' }, date.toString('yyyy-MM-dd') === current ? { backgroundColor: '#bbb', borderRadius: 100 } : null]}>
+                    <Text style={[styles.itemText]}>{date.getDate()}</Text>
+                </View>
+            </View>
+        </TouchableOpacity>
+    )
+}, areEqual)
+
+export default Day
+
+const styles = StyleSheet.create({
+    itemContainer: {
+		width: windowWidth / 7,
+		height: windowWidth / 7,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	itemText: {
+		fontSize: 14,
+		fontWeight: 'bold',
+	},
+})

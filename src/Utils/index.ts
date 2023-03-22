@@ -1,18 +1,20 @@
 import XDate from 'xdate'
+import moment from 'moment';
 
 const latinNumbersPattern = /[0-9]/g;
 
-function isValidXDate(date) {
+function isValidXDate(date: Date) {
     return date && (date instanceof XDate);
 }
-export function sameMonth(a, b) {
-    if (!isValidXDate(a) || !isValidXDate(b)) {
-        return false;
-    }
-    else {
-        return a?.getFullYear() === b?.getFullYear() && a?.getMonth() === b?.getMonth();
-    }
+
+export function sameMonth(date1: string, date2: string) {
+    return moment(date1).isSame(date2, 'month');
 }
+
+export function sameWeek(date1: string, date2: string) {
+    return moment(date1).isSame(date2, 'week');
+}
+
 export function sameDate(a, b) {
     if (!isValidXDate(a) || !isValidXDate(b)) {
         return false;
@@ -21,11 +23,9 @@ export function sameDate(a, b) {
         return a?.getFullYear() === b?.getFullYear() && a?.getMonth() === b?.getMonth() && a?.getDate() === b?.getDate();
     }
 }
-export function sameWeek(a, b, firstDayOfWeek) {
-    const weekDates = getWeekDates(a, firstDayOfWeek, 'yyyy-MM-dd');
-    const element = weekDates instanceof XDate ? new XDate(b) : b;
-    return weekDates?.includes(element);
-}
+
+
+
 export function isPastDate(date) {
     const today = new XDate();
     const d = new XDate(date);
@@ -84,9 +84,16 @@ export function weekDayNames(firstDayOfWeek = 0) {
 }
 
 export const getMonthCols = (dateStr: string) => {
+    const firstDate = dateStr.slice()
     const date = new XDate(dateStr);
     const days = month(date);
     return Math.ceil((days[0].getDay() + days.length)/7)
+}
+
+export const getWeekColForMonth= (dateStr: string) => {
+    const firstDate = moment(dateStr).startOf('month');
+    const date = moment(dateStr).date();
+    return Math.ceil((date + firstDate.day())/7);
 }
 
 export function page(date, firstDayOfWeek = 0, showSixWeeks = false) {

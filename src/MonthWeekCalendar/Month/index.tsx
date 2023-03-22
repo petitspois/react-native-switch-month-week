@@ -1,28 +1,27 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import XDate from 'xdate';
-import { page, sameWeek, getWeekDates } from '../../Utils';
+import { page, sameMonth } from '../../Utils';
 import Day from '../Day';
 
 const areEqual = (prevProps, nextProps) => {
     if(
-        sameWeek(nextProps.current, nextProps.date)
+        sameMonth(nextProps.current, nextProps.date)
     ){
         return false;
     }
     return true;
 }
 
-const Week = React.memo((props: any) => {
+const Month = React.memo((props: any) => {
     const { date, containerWidth, ...otherProps } = props;  
-    const pageData = getWeekDates(date, 0, null) ?? []
-    
+    const pageData = page(new XDate(date)) ?? []
     return (
         <View style={[styles.page, { width: containerWidth}]}>
             {
                 pageData.map((value, index) => {
                     return (
-                        <Day style={{backgroundColor: 'purple'}} date={value} {...otherProps} />
+                        <Day date={value} {...otherProps} />
                     )
                 })
             }
@@ -30,7 +29,7 @@ const Week = React.memo((props: any) => {
     )
 }, areEqual)
 
-export default Week
+export default Month
 
 const styles = StyleSheet.create({
     page: {
