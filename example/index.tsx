@@ -13,11 +13,10 @@ const Example = () => {
             <View style={{ backgroundColor: 'white' }}>
                 <Text style={{ padding: 12, fontSize: 18, fontWeight: 'bold' }}>{new XDate(currentMonth).toString('yyyy-MM')}</Text>
             </View>
-            <MonthWeekCalendar
-                onMonthChange={(date: Date) => {
-                    setCurrentMonth(date)
-                }}
-            />
+            <MonthWeekCalendar />
+            {/* <CalendarProvider date="2022-01-07">
+                <WeekCalendar hideDayNames firstDay={1} />
+            </CalendarProvider> */}
         </>
     )
 }

@@ -4,11 +4,14 @@ import XDate from 'xdate';
 
 const { width: windowWidth } = Dimensions.get('window');
 
-let a = 0;
+
 const areEqual = (prevProps, nextProps) => {
     if(
-        nextProps.current === nextProps.date.toString('yyyy-MM-dd') ||
-        prevProps.current === nextProps.date.toString('yyyy-MM-dd')
+        (
+            nextProps.current === nextProps.date.toString('yyyy-MM-dd') ||
+            prevProps.current === nextProps.date.toString('yyyy-MM-dd')
+        ) &&
+        nextProps.current !== prevProps.current
     ) {
         return false;
     }
@@ -17,9 +20,8 @@ const areEqual = (prevProps, nextProps) => {
 
 const Day = React.memo((props:any) => {
     const { onDayPress, current, date, style } = props;
-    console.log('current :>> ', current);
     return (
-        <TouchableOpacity onPress={() => onDayPress(date)}>
+        <TouchableOpacity activeOpacity={1} onPress={() => onDayPress(date.toString('yyyy-MM-dd'))}>
             <View style={[styles.itemContainer, style]} key={date.toString('yyyy-MM-dd')}>
                 <View style={[{ width: '60%', height: '60%', justifyContent: 'center', alignItems: 'center' }, date.toString('yyyy-MM-dd') === current ? { backgroundColor: '#bbb', borderRadius: 100 } : null]}>
                     <Text style={[styles.itemText]}>{date.getDate()}</Text>

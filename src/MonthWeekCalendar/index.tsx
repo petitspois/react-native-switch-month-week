@@ -10,7 +10,7 @@ import { sameWeek, sameMonth, toMarkingFormat, page, getWeekDates, getMonthCols,
 import { MonthWeekCalendarProps, Mode } from './type'
 
 import { Calendar, CalendarList, Agenda } from 'react-native-calendars';
-import Week from './Week';
+import WeekCalendar from './WeekCalendar';
 import Month from './Month';
 
 const { width: windowWidth } = Dimensions.get('window');
@@ -26,21 +26,22 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const itemWidth = containerWidth / 7;
 	//ref
 	const list = useRef();
-	const weekList = useRef();
 	const colsRef = useRef(getMonthCols(initDate));
 	const weekNum = getWeekColForMonth(initDate)
 	const animatedContainerHeight = useRef(new Animated.Value(itemWidth));
 	const pressedHeightRef = useRef(itemWidth);
 	//state
 	const [calendarMode, setCalendarMode] = useState<Mode>(defaultMode);
-	const [items, setItems] = useState(getDatesArray(initDate, 'month', NUMBER_OF_PAGES));
-	const [weekItems, setWeekItems] = useState(getDatesArray(initDate, 'week', NUMBER_OF_PAGES));
+	const [items, setItems] = useState(getDatesArray(initDate));
 	const [currentDate, setCurrentDate] = useState(initDate)
 	const weekPositionYStartRef = useRef<number>((weekNum - 1) * itemWidth);
 	const extraData = {
         currentDate
     };
 
+	const setCurrentHandler = (date: string) => {
+		setCurrentDate(date);
+	}
 
 
 	// useEffect(() => {
@@ -50,7 +51,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	// }, [date]);
 
 	const pageIndexHandler = (type: 'week' | 'month', date: string) => {
-		return (type === 'week' ? weekItems : items).findIndex(item => sameWeek(item, date))
+		// return (type === 'week' ? weekItems : items).findIndex(item => sameWeek(item, date))
 	}
 
 	const onDayPress = useCallback((dateData) => {
@@ -59,18 +60,10 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	}, [props.onDayPress]);
 
 	const _onCurrentDateChange = (date: string) => {
-		// 不是当前月份切换
-		if (
-			props?.onMonthChange &&
-			!sameMonth(new XDate(date), new XDate(currentDate))
-		) {
-			props?.onMonthChange && props?.onMonthChange(date);
-		}
-		setCurrentDate(date);
+		
 	}
 
 	const onPageChange = (pageIndex, _prevPage, { scrolledByUser }) => {
-		_onCurrentDateChange(items[pageIndex])
 		if (scrolledByUser && calendarMode === 'month') {
 			// 动态更新month高度
 			colsRef.current = getMonthCols(items[pageIndex]);
@@ -84,18 +77,24 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		}
 	};
 
-	const _onDayPress = (value: XDate) => {
+	const onWeekDayPress = (value: any) => {
 		console.log('value :>> ', value);
+		if(value !== currentDate){
+			setCurrentDate(value)
+		}
+	}
+
+	const _onDayPress = (value: XDate) => {
+		setCurrentDate(value.toString('yyyy-MM-dd'))
 		const colNum = getWeekColForMonth(value.toString('yyyy-MM-dd'));
 		weekPositionYStartRef.current = colNum * itemWidth - itemWidth;
-		weekList?.current?.scrollToOffset?.(pageIndexHandler('week', value.toString('yyyy-MM-dd')) * containerWidth, 0, false)
-		setCurrentDate(value.toString('yyyy-MM-dd'))
+		// weekList?.current?.scrollToOffset?.(pageIndexHandler('week', value.toString('yyyy-MM-dd')) * containerWidth, 0, false)
 	}
 
 
 	const reloadPages = useCallback(pageIndex => {
 		const date = items[pageIndex];
-		setItems(getDatesArray(date, firstDay, NUMBER_OF_PAGES));
+		setItems(getDatesArray(date));
 	}, [items]);
 
 
@@ -105,11 +104,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		)
 	}, [currentDate]);
 
-	const renderWeekItem = useCallback((_type, item) => {
-		return (
-			<Week current={currentDate} date={item} onDayPress={_onDayPress} containerWidth={containerWidth} />
-		)
-	}, [currentDate]);
+
 
 
 	// render
@@ -143,7 +138,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 				// 开始手势操作。给用户一些视觉反馈，让他们知道发生了什么事情！
 
 				// gestureState.{x,y} 现在会被设置为0
-				setItems(getDatesArray(initDate, 'month', NUMBER_OF_PAGES))
 				pressedHeightRef.current = animatedContainerHeight.current._value;
 			},
 			onPanResponderMove: (evt, gestureState) => {
@@ -228,8 +222,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	useEffect(() => {
 
 		if (calendarMode === 'week') {
-			// console.log('calendarMode :>> ', getDatesArray('', 'week'));
-			// setItems(getDatesArray('', 'week'))
 			return;
 		}
 
@@ -240,7 +232,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	}, [calendarMode])
 
 
-	console.log('calendarMode :>> ', calendarMode);
+	
 	return (
 
 		<View style={[styles.containerWrapper]}>
@@ -251,7 +243,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 				<Animated.View style={[{ overflow: 'hidden', height: animatedContainerHeight.current, backgroundColor: 'white' }]}>
 					<Animated.View style={{ transform: [{ translateY: translateInnerY }], overflow: 'hidden' }}>
 						<InfiniteList
-							key="week-list"
+							key="list"
 							isHorizontal
 							ref={list}
 							data={items}
@@ -261,7 +253,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 							extendedState={extraData}
 							// style={style.current.container}
 							initialPageIndex={NUMBER_OF_PAGES}
-							pageHeight={(windowWidth / 7) * 6}
+							pageHeight={(containerWidth / 7) * 6}
 							pageWidth={containerWidth}
 							onPageChange={onPageChange}
 							scrollViewProps={{
@@ -269,24 +261,16 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 							}} />
 					</Animated.View>
 				</Animated.View>
-				<Animated.View style={{ flex: 1, position: 'absolute', top: weekPositionY, left: 0, zIndex: calendarMode === 'week' ? 99 : -99, width: containerWidth, height: itemWidth }}>
-					<InfiniteList
-						key="week-list"
-						isHorizontal
-						ref={weekList}
-						data={weekItems}
-						renderItem={renderWeekItem}
-						reloadPages={reloadPages}
-						onReachNearEdgeThreshold={Math.round(NUMBER_OF_PAGES * 0.4)}
-						extendedState={extraData}
-						initialPageIndex={NUMBER_OF_PAGES}
-						pageHeight={itemWidth}
-						pageWidth={containerWidth}
-						onPageChange={onPageChange}
-						scrollViewProps={{
-							showsHorizontalScrollIndicator: false
-						}} />
-				</Animated.View>
+				<Animated.View style={{ position: 'absolute', top: weekPositionY, left: 0, zIndex: calendarMode === 'week' ? 99 : -99, width: containerWidth, height: itemWidth }}>
+					<WeekCalendar 
+						onWeekDayPress={onWeekDayPress} 
+						initDate={initDate} 
+						mode={calendarMode} 
+						current={currentDate} 
+						setCurrent={setCurrentHandler}
+						layout={{containerWidth, itemWidth}} 
+						/>
+				</Animated.View>		
 			</View>
 			{renderKnob()}
 		</View>
@@ -335,11 +319,11 @@ const styles = StyleSheet.create({
 
 
 
-function getDatesArray(date: string | undefined, type: 'month' | 'week', numberOfPages: number = NUMBER_OF_PAGES) {
+function getDatesArray(date: string | undefined, numberOfPages: number = NUMBER_OF_PAGES) {
 	const d = date || new XDate().toString();
 	const array = [];
 	for (let index = -numberOfPages; index <= numberOfPages; index++) {
-		const newDate = type === 'month' ? getDate(d, index) : getWeekDate(d, 1, index);
+		const newDate = getDate(d, index);
 		array.push(newDate);
 	}
 	return array;
@@ -348,23 +332,7 @@ function getDatesArray(date: string | undefined, type: 'month' | 'week', numberO
 function getDate(date: string, index: number) {
 	const d = new XDate(date);
 	d.addMonths(index, true);
-	// if (index !== 0) {
 	d.setDate(1);
-	// }
 	return toMarkingFormat(d);
 }
 
-
-function getWeekDate(date: string, firstDay: number, weekIndex: number) {
-	// const d = new XDate(current || context.date);
-	const d = new XDate(date);
-	// get the first day of the week as date (for the on scroll mark)
-	let dayOfTheWeek = d.getDay();
-	if (dayOfTheWeek < firstDay && firstDay > 0) {
-		dayOfTheWeek = 7 + dayOfTheWeek;
-	}
-	// leave the current date in the visible week as is
-	const dd = weekIndex === 0 ? d : d.addDays(firstDay - dayOfTheWeek);
-	const newDate = dd.addWeeks(weekIndex);
-	return toMarkingFormat(newDate);
-}

@@ -117,7 +117,6 @@ const InfiniteList = forwardRef<any, InfiniteListProps>((props, ref) => {
         return { height: pageHeight };
     }, [pageHeight]);
 
-    console.log('dataProvider', style)
 
     return (
         <RecyclerListView
