@@ -26,7 +26,8 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	//state
 	const [mode, setMode] = useState<Mode>(defaultMode);
 	const [currentDate, setCurrentDate] = useState(initDate)
-	const [monthDates, weekDates] = generateDates(initDate);
+	const [monthDates, weekDates] = useMemo(() => generateDates(initDate), [initDate]);
+
 
 	const setCurrentHandler = (date: string) => {
 		setCurrentDate(date);
