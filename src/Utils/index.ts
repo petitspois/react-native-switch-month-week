@@ -1,10 +1,58 @@
 import XDate from 'xdate'
 import moment from 'moment';
+import { NUMBER_OF_PAGES } from '../Constants';
 
 const latinNumbersPattern = /[0-9]/g;
 
 function isValidXDate(date: Date) {
     return date && (date instanceof XDate);
+}
+
+
+function getDatesArray(date: string | undefined, numberOfPages: number = NUMBER_OF_PAGES) {
+	const d = date || new XDate().toString();
+	const array = [];
+    const weekArray: string[] = []
+	for (let index = -numberOfPages; index <= numberOfPages; index++) {
+		const newDate = getDate(d, index);
+		array.push(newDate);
+	}
+    
+    const week = moment(array[0]).day();
+    const startWeek: any = moment(array[0]).subtract(week, 'day')
+    const endWeek: any = moment(array[array.length - 1]).endOf('month')
+    const weekLength = endWeek.diff(startWeek, 'week')+1;
+    for(let index = 0; index < weekLength; index++){
+        if(!index){
+            weekArray.push(startWeek.format('YYYY-MM-DD'))
+            continue;
+        }
+        weekArray.push(startWeek.add(1, 'week').format('YYYY-MM-DD'))
+    }
+	return array;
+}
+
+export const generateDates = (date: string, numberOfPages: number = NUMBER_OF_PAGES) => {
+    const d = moment(date).subtract(numberOfPages, 'month').startOf('month');
+	const array: string[] = [];
+    const weekArray: string[] = []
+	for (let index = 0; index<numberOfPages*2+1; index++) {
+		const newDate = d.add(index > 0 ? 1: 0, 'month').format('YYYY-MM-DD')
+        array.push(newDate)
+	}
+    // week
+    const week = moment(array[0]).day();
+    const startWeek: any = moment(array[0]).subtract(week, 'day')
+    const endWeek: any = moment(array[array.length - 1]).endOf('month')
+    const weekLength = endWeek.diff(startWeek, 'week')+1;
+    for(let index = 0; index < weekLength; index++){
+        if(!index){
+            weekArray.push(startWeek.format('YYYY-MM-DD'))
+            continue;
+        }
+        weekArray.push(startWeek.add(1, 'week').format('YYYY-MM-DD'))
+    }
+	return [array, weekArray];
 }
 
 export function sameMonth(date1: string, date2: string) {
@@ -13,6 +61,19 @@ export function sameMonth(date1: string, date2: string) {
 
 export function sameWeek(date1: string, date2: string) {
     return moment(date1).isSame(date2, 'week');
+}
+
+export const getMonthRows = (dateStr: string) => {
+    // 周几
+    const day = moment(dateStr).startOf('month').day();
+    const endDay = moment(dateStr).endOf('month').date();
+    return Math.ceil((day + endDay)/7)
+}
+
+export const getRowAboveTheWeek = (dateStr: string) => {
+    const day = moment(dateStr).startOf('month').day();
+    const endDay = moment(dateStr).date();
+    return Math.ceil((day+endDay)/7)-1;
 }
 
 export function sameDate(a, b) {
@@ -83,18 +144,7 @@ export function weekDayNames(firstDayOfWeek = 0) {
     return weekDaysNames;
 }
 
-export const getMonthCols = (dateStr: string) => {
-    const firstDate = dateStr.slice()
-    const date = new XDate(dateStr);
-    const days = month(date);
-    return Math.ceil((days[0].getDay() + days.length)/7)
-}
 
-export const getWeekColForMonth= (dateStr: string) => {
-    const firstDate = moment(dateStr).startOf('month');
-    const date = moment(dateStr).date();
-    return Math.ceil((date + firstDate.day())/7);
-}
 
 export function page(date, firstDayOfWeek = 0, showSixWeeks = false) {
 	//days [1-31]

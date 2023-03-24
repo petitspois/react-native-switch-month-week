@@ -1,21 +1,15 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity } from 'react-native';
 import XDate from 'xdate';
-import InfiniteList from '../InfiniteList';
 import WeekDaysNames from './WeekDaysNames';
-import CalendarContext from '../Context';
-import styleConstructor from '../Utils/style';
 import constants from '../Utils/constants';
-import { sameWeek, sameMonth, toMarkingFormat, page, getWeekDates, getMonthCols, getWeekColForMonth } from '../Utils';
+import { getMonthRows, getRowAboveTheWeek, generateDates } from '../Utils';
 import { MonthWeekCalendarProps, Mode } from './type'
-
-import { Calendar, CalendarList, Agenda } from 'react-native-calendars';
 import WeekCalendar from './WeekCalendar';
-import Month from './Month';
+import MonthCalendar from './MonthCalendar';
 
 const { width: windowWidth } = Dimensions.get('window');
 
-const NUMBER_OF_PAGES = 50;
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
 	const { initialDate, boxWidth } = props;
@@ -25,87 +19,69 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const containerWidth = boxWidth || windowWidth;
 	const itemWidth = containerWidth / 7;
 	//ref
-	const list = useRef();
-	const colsRef = useRef(getMonthCols(initDate));
-	const weekNum = getWeekColForMonth(initDate)
+	const rowsRef = useRef(getMonthRows(initDate));
 	const animatedContainerHeight = useRef(new Animated.Value(itemWidth));
 	const pressedHeightRef = useRef(itemWidth);
+	const monthTranslateRef = useRef<number>((getRowAboveTheWeek(initDate)) * itemWidth)
 	//state
-	const [calendarMode, setCalendarMode] = useState<Mode>(defaultMode);
-	const [items, setItems] = useState(getDatesArray(initDate));
+	const [mode, setMode] = useState<Mode>(defaultMode);
 	const [currentDate, setCurrentDate] = useState(initDate)
-	const weekPositionYStartRef = useRef<number>((weekNum - 1) * itemWidth);
-	const extraData = {
-        currentDate
-    };
+	const [monthDates, weekDates] = generateDates(initDate);
 
 	const setCurrentHandler = (date: string) => {
 		setCurrentDate(date);
 	}
 
-
-	// useEffect(() => {
-	// 	const pageIndex = items.findIndex(item => sameWeek(item, date, firstDay));
-	// 	// @ts-expect-error
-	// 	list.current?.scrollToOffset?.(pageIndex * containerWidth, 0, false);
-	// }, [date]);
-
-	const pageIndexHandler = (type: 'week' | 'month', date: string) => {
-		// return (type === 'week' ? weekItems : items).findIndex(item => sameWeek(item, date))
+	const updateContainerHeight = (row: number, finishCallback?: () => void) => {
+		Animated.timing(animatedContainerHeight.current, {
+			toValue: row * itemWidth,
+			duration: 400,
+			useNativeDriver: false,
+		}).start((finish) => {
+			if (finish) {
+				finishCallback && finishCallback();
+			}
+		})
 	}
-
-	const onDayPress = useCallback((dateData) => {
-		// context.setDate?.(dateData.dateString, UpdateSources.DAY_PRESS);
-		props.onDayPress?.(dateData);
-	}, [props.onDayPress]);
-
-	const _onCurrentDateChange = (date: string) => {
-		
-	}
-
-	const onPageChange = (pageIndex, _prevPage, { scrolledByUser }) => {
-		if (scrolledByUser && calendarMode === 'month') {
-			// 动态更新month高度
-			colsRef.current = getMonthCols(items[pageIndex]);
-			Animated.timing(animatedContainerHeight.current, {
-				toValue: getMonthCols(items[pageIndex]) * itemWidth,
-				duration: 400,
-				useNativeDriver: false,
-			}).start((finish) => {
-
-			})
-		}
-	};
 
 	const onWeekDayPress = (value: any) => {
-		console.log('value :>> ', value);
-		if(value !== currentDate){
+		if (value !== currentDate) {
 			setCurrentDate(value)
 		}
 	}
 
-	const _onDayPress = (value: XDate) => {
-		setCurrentDate(value.toString('yyyy-MM-dd'))
-		const colNum = getWeekColForMonth(value.toString('yyyy-MM-dd'));
-		weekPositionYStartRef.current = colNum * itemWidth - itemWidth;
-		// weekList?.current?.scrollToOffset?.(pageIndexHandler('week', value.toString('yyyy-MM-dd')) * containerWidth, 0, false)
+	const onMonthDayPress = (value: any) => {
+		if (value !== currentDate) {
+			updateMonthTranslateRef(value);
+			setCurrentDate(value)
+		}
 	}
 
+	const onMonthPageChange = (prevDate: string, curDate: string) => {
+		/**
+		 *  页面行数不一致需要更新
+		 */
 
-	const reloadPages = useCallback(pageIndex => {
-		const date = items[pageIndex];
-		setItems(getDatesArray(date));
-	}, [items]);
+		const prevRows = getMonthRows(prevDate);
+		const row = getMonthRows(curDate)
+		monthTranslateRef.current = 0;
+		if (
+			prevRows !== row
+		) {
+			rowsRef.current = row;
+			setTimeout(() => {
+				updateContainerHeight(row)
+			}, 16)
+		}
+	}
 
+	const onWeekPageChange = (prevDate: string, curDate: string, current: string) => {
+		updateMonthTranslateRef(current);
+	}
 
-	const renderItem = useCallback((_type, item) => {
-		return (
-			<Month current={currentDate} date={item} onDayPress={_onDayPress} containerWidth={containerWidth} />
-		)
-	}, [currentDate]);
-
-
-
+	const updateMonthTranslateRef = (date: string) => {
+		monthTranslateRef.current = getRowAboveTheWeek(date) * itemWidth;
+	}
 
 	// render
 	const renderKnob = () => {
@@ -116,10 +92,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		)
 	}
 
-
-	useEffect(() => {
-
-	}, [])
 
 	const isAValidMovement = (distanceX, distanceY) => {
 		const moveTravelledFarEnough =
@@ -141,51 +113,39 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 				pressedHeightRef.current = animatedContainerHeight.current._value;
 			},
 			onPanResponderMove: (evt, gestureState) => {
-				// if (evt.nativeEvent.pageY <= itemWidth) {
-				// 	animatedContainerHeight.current.setValue(itemWidth)
-				// 	return;
-				// }
-				// if (evt.nativeEvent.pageY >= itemWidth * colsRef.current) {
-				// 	animatedContainerHeight.current.setValue(itemWidth * colsRef.current)
-				// 	return;
-				// }
-				// console.log('evt.nativeEvent.pageY animatedContainerHeight:>> ',gestureState);
 
 				if (gestureState.dy + pressedHeightRef.current < itemWidth) {
 					animatedContainerHeight.current.setValue(itemWidth)
 					return;
 				}
 
-				if (gestureState.dy + pressedHeightRef.current > itemWidth * colsRef.current) {
-					animatedContainerHeight.current.setValue(itemWidth * colsRef.current)
+				if (gestureState.dy + pressedHeightRef.current > itemWidth * rowsRef.current) {
+					animatedContainerHeight.current.setValue(itemWidth * rowsRef.current)
 					return;
 				}
 				animatedContainerHeight.current.setValue(gestureState.dy + pressedHeightRef.current)
-				// 最近一次的移动距离为gestureState.move{X,Y}
-
-				// 从成为响应者开始时的累计手势移动距离为gestureState.d{x,y}
 			},
 			onPanResponderTerminationRequest: (evt, gestureState) => true,
 			onPanResponderRelease: (evt, gestureState) => {
-				if (gestureState.dy + pressedHeightRef.current < (itemWidth * colsRef.current) / 2) {
+				if (gestureState.dy + pressedHeightRef.current < (itemWidth * rowsRef.current) / 2) {
 					Animated.timing(animatedContainerHeight.current, {
 						toValue: itemWidth,
 						duration: 100,
 						useNativeDriver: false,
 					}).start((finish) => {
 						if (finish) {
-							setCalendarMode('week')
+							setMode('week')
 						}
 					})
 					return;
 				} else {
 					Animated.timing(animatedContainerHeight.current, {
-						toValue: itemWidth * colsRef.current,
+						toValue: itemWidth * rowsRef.current,
 						duration: 100,
 						useNativeDriver: false,
 					}).start((finish) => {
 						if (finish) {
-							setCalendarMode('month')
+							setMode('month')
 						}
 					})
 					return;
@@ -206,33 +166,21 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
 
 
-	const translateInnerY = animatedContainerHeight.current.interpolate({
-		inputRange: [itemWidth, itemWidth * colsRef.current],
-		outputRange: [-weekPositionYStartRef.current, 0]
+	// 月定位
+	const monthPositionY = animatedContainerHeight.current.interpolate({
+		inputRange: [itemWidth, itemWidth * rowsRef.current],
+		outputRange: [-monthTranslateRef.current, 0]
 	})
 
 	const weekPositionY = animatedContainerHeight.current.interpolate({
-		inputRange: [itemWidth, itemWidth * colsRef.current],
-		outputRange: [0, weekPositionYStartRef.current]
+		inputRange: [itemWidth, itemWidth * rowsRef.current],
+		outputRange: [0, monthTranslateRef.current]
 	})
 
-	/**
-	 *  监听月周切换
-	 */
-	useEffect(() => {
-
-		if (calendarMode === 'week') {
-			return;
-		}
-
-		if (calendarMode === 'month') {
-			return;
-		}
-
-	}, [calendarMode])
 
 
-	
+
+
 	return (
 
 		<View style={[styles.containerWrapper]}>
@@ -241,36 +189,31 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 			</View>
 			<View>
 				<Animated.View style={[{ overflow: 'hidden', height: animatedContainerHeight.current, backgroundColor: 'white' }]}>
-					<Animated.View style={{ transform: [{ translateY: translateInnerY }], overflow: 'hidden' }}>
-						<InfiniteList
-							key="list"
-							isHorizontal
-							ref={list}
-							data={items}
-							renderItem={renderItem}
-							reloadPages={reloadPages}
-							onReachNearEdgeThreshold={Math.round(NUMBER_OF_PAGES * 0.4)}
-							extendedState={extraData}
-							// style={style.current.container}
-							initialPageIndex={NUMBER_OF_PAGES}
-							pageHeight={(containerWidth / 7) * 6}
-							pageWidth={containerWidth}
-							onPageChange={onPageChange}
-							scrollViewProps={{
-								showsHorizontalScrollIndicator: false
-							}} />
+					<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
+						<MonthCalendar
+							initDate={initDate}
+							onMonthDayPress={onMonthDayPress}
+							mode={mode}
+							current={currentDate}
+							setCurrent={setCurrentHandler}
+							layout={{ containerWidth, itemWidth }}
+							onMonthPageChange={onMonthPageChange}
+							dataSource={monthDates}
+						/>
 					</Animated.View>
 				</Animated.View>
-				<Animated.View style={{ position: 'absolute', top: weekPositionY, left: 0, zIndex: calendarMode === 'week' ? 99 : -99, width: containerWidth, height: itemWidth }}>
-					<WeekCalendar 
-						onWeekDayPress={onWeekDayPress} 
-						initDate={initDate} 
-						mode={calendarMode} 
-						current={currentDate} 
+				<Animated.View style={{ position: 'absolute', top: weekPositionY, left: 0, zIndex: mode === 'week' ? 99 : -99, width: containerWidth, height: itemWidth }}>
+					<WeekCalendar
+						onWeekDayPress={onWeekDayPress}
+						initDate={initDate}
+						mode={mode}
+						current={currentDate}
 						setCurrent={setCurrentHandler}
-						layout={{containerWidth, itemWidth}} 
-						/>
-				</Animated.View>		
+						layout={{ containerWidth, itemWidth }}
+						onWeekPageChange={onWeekPageChange}
+						dataSource={weekDates}
+					/>
+				</Animated.View>
 			</View>
 			{renderKnob()}
 		</View>
@@ -315,24 +258,3 @@ const styles = StyleSheet.create({
 		backgroundColor: 'silver',
 	}
 })
-
-
-
-
-function getDatesArray(date: string | undefined, numberOfPages: number = NUMBER_OF_PAGES) {
-	const d = date || new XDate().toString();
-	const array = [];
-	for (let index = -numberOfPages; index <= numberOfPages; index++) {
-		const newDate = getDate(d, index);
-		array.push(newDate);
-	}
-	return array;
-}
-
-function getDate(date: string, index: number) {
-	const d = new XDate(date);
-	d.addMonths(index, true);
-	d.setDate(1);
-	return toMarkingFormat(d);
-}
-

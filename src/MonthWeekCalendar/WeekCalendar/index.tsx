@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Animated } from 'react-native'
-import React, { useRef, useState, useCallback } from 'react'
+import React, { useRef, useState, useCallback, useEffect } from 'react'
 import InfiniteList from '../../InfiniteList'
 import { toMarkingFormat, sameWeek } from '../../Utils';
 import { NUMBER_OF_PAGES, DATE_FORMAT } from '../../Constants';
@@ -15,8 +15,10 @@ interface WeekCalendarProps {
         containerWidth: number;
         itemWidth: number;
     },
+    dataSource: string[];
     setCurrent: (date: string) => void;
     onWeekDayPress: (value: any) => void;
+    onWeekPageChange: (prevDate: string, curDate: string, current: string) => void;
 }
 
 const areEqual = (prevProps: WeekCalendarProps, nextProps: WeekCalendarProps) => {
@@ -28,12 +30,11 @@ const areEqual = (prevProps: WeekCalendarProps, nextProps: WeekCalendarProps) =>
 
 const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 
-    const { initDate, mode, layout, current, onWeekDayPress, setCurrent } = props;
+    const { initDate, mode, layout, current, onWeekDayPress, onWeekPageChange, setCurrent, dataSource } = props;
 
-    const weekList = useRef();
+    const list = useRef<any>();
+    const prevCurrent = useRef(current); 
     // state
-    const [weekItems, setWeekItems] = useState(getDatesArray(initDate));
-    console.log('weekItems==== :>> ', weekItems);
     const extraWeekData = {
         current,
     }
@@ -42,32 +43,42 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
             // 上一页选中的是星期几
             const prevDay = moment(current).day();
             // 当前周第一天周日
-            const weekFirstDay = weekItems[pageIndex];
+            const weekFirstDay = dataSource[pageIndex];
             const weekCurrent = moment(weekFirstDay).add(prevDay, 'days').format(DATE_FORMAT);
+            onWeekPageChange && onWeekPageChange?.(dataSource[_prevPage], dataSource[pageIndex], weekCurrent)
             setCurrent(weekCurrent);
-        }
-    }, [weekItems, current]);
 
-    const reloadPages = useCallback((pageIndex: number) => {
-        const date = weekItems[pageIndex];
-        setWeekItems(getDatesArray(date));
-    }, [weekItems]);
+        }
+    }, [dataSource, current]);
+
 
     const renderWeekItem = useCallback((_type: any, item: string) => {
+        console.log('current :>> ', current);
         return (
             <Week key={item} current={current} date={item} onDayPress={onWeekDayPress} containerWidth={layout.containerWidth} />
         )
     }, [current]);
 
+
+    useEffect(()=>{
+        if(
+            mode === 'month' && 
+            !sameWeek(prevCurrent.current, current)
+        ){
+            const pageIndex = dataSource.findIndex(item=> sameWeek(item, current));
+            list.current?.scrollToOffset?.(pageIndex * layout.containerWidth, 0, false);
+        }
+        prevCurrent.current = current;
+    }, [current])
+
+
     return (
         <InfiniteList
             key="week-list"
             isHorizontal
-            ref={weekList}
-            data={weekItems}
+            ref={list}
+            data={dataSource}
             renderItem={renderWeekItem}
-            reloadPages={reloadPages}
-            onReachNearEdgeThreshold={Math.round(NUMBER_OF_PAGES * 0.4)}
             extendedState={extraWeekData}
             initialPageIndex={NUMBER_OF_PAGES}
             pageHeight={layout.itemWidth}
