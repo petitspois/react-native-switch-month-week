@@ -14,8 +14,8 @@ const WeekDaysNames = React.memo<WeekDaysNamesProps>(({
 }): React.ReactElement[] | any => {
 	return dayNames.map((day, index) => {
 		return (
-			<View style={[styles.dayNamesItemContainer]}>
-				<Text allowFontScaling={false} key={index} style={styles.dayNamesItem} numberOfLines={1} accessibilityLabel={''}>{day}</Text>
+			<View style={[styles.dayNamesItemContainer]} key={day}>
+				<Text allowFontScaling={false} style={styles.dayNamesItem} numberOfLines={1} accessibilityLabel={''}>{day}</Text>
 			</View>
 		)
 	})

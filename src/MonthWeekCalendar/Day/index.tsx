@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native'
-import React from 'react'
+import React, { useCallback } from 'react'
 import XDate from 'xdate';
+import { sameMonth } from '../../Utils';
 
 const { width: windowWidth } = Dimensions.get('window');
 
@@ -20,9 +21,14 @@ const areEqual = (prevProps, nextProps) => {
 
 const Day = React.memo((props:any) => {
     const { onDayPress, current, date, style } = props;
+
+    const _onDayPress = useCallback(()=>{
+        onDayPress(date.toString('yyyy-MM-dd'))
+    }, [onDayPress, date])
+
     return (
-        <TouchableOpacity activeOpacity={1} onPress={() => onDayPress(date.toString('yyyy-MM-dd'))}>
-            <View style={[styles.itemContainer, style]} key={date.toString('yyyy-MM-dd')}>
+        <TouchableOpacity key={date.toString('yyyy-MM-dd')} activeOpacity={1} onPress={_onDayPress}>
+            <View style={[styles.itemContainer, style]} >
                 <View style={[{ width: '60%', height: '60%', justifyContent: 'center', alignItems: 'center' }, date.toString('yyyy-MM-dd') === current ? { backgroundColor: '#bbb', borderRadius: 100 } : null]}>
                     <Text style={[styles.itemText]}>{date.getDate()}</Text>
                 </View>

@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOp
 import XDate from 'xdate';
 import WeekDaysNames from './WeekDaysNames';
 import constants from '../Utils/constants';
-import { getMonthRows, getRowAboveTheWeek, generateDates } from '../Utils';
+import { getMonthRows, getRowAboveTheWeek, generateDates, sameMonth } from '../Utils';
 import { MonthWeekCalendarProps, Mode } from './type'
 import WeekCalendar from './WeekCalendar';
 import MonthCalendar from './MonthCalendar';
+import moment from 'moment';
+import { debounce } from 'lodash';
 
 const { width: windowWidth } = Dimensions.get('window');
 
@@ -34,15 +36,20 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	}
 
 	const updateContainerHeight = (row: number, finishCallback?: () => void) => {
-		Animated.timing(animatedContainerHeight.current, {
-			toValue: row * itemWidth,
-			duration: 400,
-			useNativeDriver: false,
-		}).start((finish) => {
-			if (finish) {
-				finishCallback && finishCallback();
-			}
-		})
+		animatedContainerHeight.current.setValue(row * itemWidth)
+		// Animated.timing(animatedContainerHeight.current, {
+		// 	toValue: row * itemWidth,
+		// 	duration: 300,
+		// 	useNativeDriver: false,
+		// }).start((finish) => {
+		// 	if (finish) {
+		// 		finishCallback && finishCallback();
+		// 	}
+		// })
+	}
+
+	const monthChanged = (date: string) => {
+ 			props?.onMonthChange && props?.onMonthChange(moment(date).startOf('month').format('YYYY-MM-DD'));
 	}
 
 	const onWeekDayPress = (value: any) => {
@@ -61,19 +68,12 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const onMonthPageChange = (prevDate: string, curDate: string) => {
 		/**
 		 *  页面行数不一致需要更新
-		 */
-
-		const prevRows = getMonthRows(prevDate);
-		const row = getMonthRows(curDate)
+		*/
 		monthTranslateRef.current = 0;
-		if (
-			prevRows !== row
-		) {
-			rowsRef.current = row;
-			setTimeout(() => {
-				updateContainerHeight(row)
-			}, 16)
-		}
+		console.log('monthTranslateRef.current :>> ', monthTranslateRef.current);
+		const row = getMonthRows(curDate)
+		rowsRef.current = row;
+		updateContainerHeight(row)
 	}
 
 	const onWeekPageChange = (prevDate: string, curDate: string, current: string) => {
@@ -140,6 +140,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 					})
 					return;
 				} else {
+					monthTranslateRef.current = 0;
 					Animated.timing(animatedContainerHeight.current, {
 						toValue: itemWidth * rowsRef.current,
 						duration: 100,
@@ -166,7 +167,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	).current;
 
 
-
+	console.log('monthTranslateRef.current :>> ', monthTranslateRef.current);
 	// 月定位
 	const monthPositionY = animatedContainerHeight.current.interpolate({
 		inputRange: [itemWidth, itemWidth * rowsRef.current],
@@ -200,6 +201,8 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 							layout={{ containerWidth, itemWidth }}
 							onMonthPageChange={onMonthPageChange}
 							dataSource={monthDates}
+							monthChanged={monthChanged}
+							
 						/>
 					</Animated.View>
 				</Animated.View>
@@ -213,6 +216,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 						layout={{ containerWidth, itemWidth }}
 						onWeekPageChange={onWeekPageChange}
 						dataSource={weekDates}
+						monthChanged={monthChanged}
 					/>
 				</Animated.View>
 			</View>

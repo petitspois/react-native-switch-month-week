@@ -57,7 +57,8 @@ const InfiniteList = forwardRef<any, InfiniteListProps>((props, ref) => {
 	}, [data]);
 
 	const onScroll = useCallback((event, offsetX, offsetY) => {
-		reloadPagesDebounce?.cancel();
+        
+        reloadPagesDebounce?.cancel();
 		const { x, y } = event.nativeEvent.contentOffset;
 		const newPageIndex = Math.round(isHorizontal ? x / pageWidth : y / pageHeight);
 		if (pageIndex.current !== newPageIndex) {
@@ -76,7 +77,8 @@ const InfiniteList = forwardRef<any, InfiniteListProps>((props, ref) => {
 			}
 			if (isHorizontal && constants.isAndroid) {
 				// NOTE: this is done only to handle 'onMomentumScrollEnd' not being called on Android
-				setTimeout(() => {
+				setTimeout(function(){
+
 					onMomentumScrollEnd(event);
 				}, 100);
 			}
@@ -86,13 +88,13 @@ const InfiniteList = forwardRef<any, InfiniteListProps>((props, ref) => {
 	}, [props.onScroll, onPageChange, data.length, reloadPagesDebounce]);
 
 	const onMomentumScrollEnd = useCallback(event => {
-		if (pageIndex.current) {
-			if (isOnEdge.current) {
-				onReachEdge?.(pageIndex.current);
+        if (pageIndex.current) {
+            if (isOnEdge.current) {
+                onReachEdge?.(pageIndex.current);
 				reloadPagesDebounce?.(pageIndex.current);
 			}
 			else if (isNearEdge.current) {
-				reloadPagesDebounce?.(pageIndex.current);
+                reloadPagesDebounce?.(pageIndex.current);
 				onReachNearEdge?.(pageIndex.current);
 			}
 			scrollViewProps?.onMomentumScrollEnd?.(event);

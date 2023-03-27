@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Animated } from 'react-native'
-import React, { useRef, useState, useCallback, useEffect } from 'react'
+import React, { useRef, useState, useCallback, useEffect, useMemo } from 'react'
 import InfiniteList from '../../InfiniteList'
 import { toMarkingFormat, sameWeek } from '../../Utils';
 import { NUMBER_OF_PAGES, DATE_FORMAT } from '../../Constants';
@@ -19,6 +19,7 @@ interface WeekCalendarProps {
 	setCurrent: (date: string) => void;
 	onWeekDayPress: (value: any) => void;
 	onWeekPageChange: (prevDate: string, curDate: string, current: string) => void;
+    monthChanged?:(date: string) => void;
 }
 
 const areEqual = (prevProps: WeekCalendarProps, nextProps: WeekCalendarProps) => {
@@ -31,7 +32,7 @@ const areEqual = (prevProps: WeekCalendarProps, nextProps: WeekCalendarProps) =>
 const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 
 	const { initDate, mode, layout, current, onWeekDayPress, onWeekPageChange, setCurrent, dataSource } = props;
-
+    const initialIndex = useMemo(() => dataSource.findIndex(item => sameWeek(item, initDate)), [initDate])
 	const list = useRef<any>();
 	const prevCurrent = useRef(current);
 	// state
@@ -53,9 +54,8 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 
 
 	const renderWeekItem = useCallback((_type: any, item: string) => {
-		console.log(item)
 		return (
-			<Week key={item} current={current} date={item} onDayPress={onWeekDayPress} containerWidth={layout.containerWidth} />
+			<Week key={item} mode={mode} current={current} date={item} onDayPress={onWeekDayPress} containerWidth={layout.containerWidth} />
 		)
 	}, [current]);
 
@@ -71,7 +71,6 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 		prevCurrent.current = current;
 	}, [current])
 
-
 	return (
 		<InfiniteList
 			key="week-list"
@@ -80,7 +79,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 			data={dataSource}
 			renderItem={renderWeekItem}
 			extendedState={extraWeekData}
-			initialPageIndex={dataSource.length / 2}
+			initialPageIndex={initialIndex}
 			pageHeight={layout.itemWidth}
 			pageWidth={layout.containerWidth}
 			onPageChange={onPageChange}

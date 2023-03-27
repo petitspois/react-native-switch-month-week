@@ -6,7 +6,8 @@ import Day from '../Day';
 
 const areEqual = (prevProps, nextProps) => {
     if(
-        sameMonth(nextProps.current, nextProps.date)
+        // sameMonth(nextProps.current, nextProps.date)
+        prevProps.current !== nextProps.current
     ){
         return false;
     }
@@ -21,7 +22,7 @@ const Month = React.memo((props: any) => {
             {
                 pageData.map((value, index) => {
                     return (
-                        <Day date={value} {...otherProps} />
+                        <Day key={value.toString('yyyy-MM-dd')} date={value} {...otherProps} />
                     )
                 })
             }

@@ -23,7 +23,7 @@ const Week = React.memo((props: any) => {
             {
                 pageData.map((value, index) => {
                     return (
-                        <Day style={{backgroundColor: 'purple'}} date={value} {...otherProps} />
+                        <Day key={value.toString('yyyy-MM-dd')} style={{backgroundColor: 'purple'}} date={value} {...otherProps} />
                     )
                 })
             }
