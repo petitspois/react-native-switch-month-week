@@ -17,9 +17,6 @@ const Example = () => {
             <MonthWeekCalendar onMonthChange={(date) => {
                 setCurrentMonth(date)
             }}/>
-            {/* <CalendarProvider date="2022-01-07">
-                <WeekCalendar hideDayNames firstDay={1} />
-            </CalendarProvider> */}
         </>
     )
 }

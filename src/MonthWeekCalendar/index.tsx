@@ -9,22 +9,25 @@ import WeekCalendar from './WeekCalendar';
 import MonthCalendar from './MonthCalendar';
 import moment from 'moment';
 import { debounce } from 'lodash';
+import { theme } from '../Constants';
 
 const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
+	const themes = { ...theme, ...props.theme };
 	const { initialDate, boxWidth } = props;
 	const initDate = !!initialDate ? initialDate : new XDate().toString('yyyy-MM-dd')
 	//var
 	const defaultMode = 'week';
 	const containerWidth = boxWidth || windowWidth;
 	const itemWidth = containerWidth / 7;
+	const itemHeight = containerWidth / 8;
 	//ref
-	const rowsRef = useRef(getMonthRows(initDate));
-	const animatedContainerHeight = useRef(new Animated.Value(itemWidth));
-	const pressedHeightRef = useRef(itemWidth);
-	const monthTranslateRef = useRef<number>((getRowAboveTheWeek(initDate)) * itemWidth)
+	const rowsRef = useRef(6 ?? getMonthRows(initDate));
+	const animatedContainerHeight = useRef(new Animated.Value(itemHeight));
+	const pressedHeightRef = useRef(itemHeight);
+	const monthTranslateRef = useRef<number>((getRowAboveTheWeek(initDate)) * itemHeight)
 	//state
 	const [mode, setMode] = useState<Mode>(defaultMode);
 	const [currentDate, setCurrentDate] = useState(initDate)
@@ -35,21 +38,8 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		setCurrentDate(date);
 	}
 
-	const updateContainerHeight = (row: number, finishCallback?: () => void) => {
-		animatedContainerHeight.current.setValue(row * itemWidth)
-		// Animated.timing(animatedContainerHeight.current, {
-		// 	toValue: row * itemWidth,
-		// 	duration: 300,
-		// 	useNativeDriver: false,
-		// }).start((finish) => {
-		// 	if (finish) {
-		// 		finishCallback && finishCallback();
-		// 	}
-		// })
-	}
-
 	const monthChanged = (date: string) => {
- 			props?.onMonthChange && props?.onMonthChange(moment(date).startOf('month').format('YYYY-MM-DD'));
+		props?.onMonthChange && props?.onMonthChange(moment(date).startOf('month').format('YYYY-MM-DD'));
 	}
 
 	const onWeekDayPress = (value: any) => {
@@ -58,9 +48,10 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		}
 	}
 
-	const onMonthDayPress = (value: any) => {
+	const onMonthDayPress = (value: any, rows: number) => {
 		if (value !== currentDate) {
-			updateMonthTranslateRef(value);
+			console.log('rows :>> ', rows);
+			updateMonthTranslateRef(rows);
 			setCurrentDate(value)
 		}
 	}
@@ -70,18 +61,15 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		 *  页面行数不一致需要更新
 		*/
 		monthTranslateRef.current = 0;
-		console.log('monthTranslateRef.current :>> ', monthTranslateRef.current);
-		const row = getMonthRows(curDate)
-		rowsRef.current = row;
-		updateContainerHeight(row)
+
 	}
 
-	const onWeekPageChange = (prevDate: string, curDate: string, current: string) => {
-		updateMonthTranslateRef(current);
+	const onWeekPageChange = (prevDate: string, curDate: string, rows: number) => {
+		updateMonthTranslateRef(rows);
 	}
 
-	const updateMonthTranslateRef = (date: string) => {
-		monthTranslateRef.current = getRowAboveTheWeek(date) * itemWidth;
+	const updateMonthTranslateRef = (rows: number) => {
+		monthTranslateRef.current = rows * itemHeight;
 	}
 
 	// render
@@ -115,22 +103,22 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 			},
 			onPanResponderMove: (evt, gestureState) => {
 
-				if (gestureState.dy + pressedHeightRef.current < itemWidth) {
-					animatedContainerHeight.current.setValue(itemWidth)
+				if (gestureState.dy + pressedHeightRef.current < itemHeight) {
+					animatedContainerHeight.current.setValue(itemHeight)
 					return;
 				}
 
-				if (gestureState.dy + pressedHeightRef.current > itemWidth * rowsRef.current) {
-					animatedContainerHeight.current.setValue(itemWidth * rowsRef.current)
+				if (gestureState.dy + pressedHeightRef.current > itemHeight * rowsRef.current) {
+					animatedContainerHeight.current.setValue(itemHeight * rowsRef.current)
 					return;
 				}
 				animatedContainerHeight.current.setValue(gestureState.dy + pressedHeightRef.current)
 			},
 			onPanResponderTerminationRequest: (evt, gestureState) => true,
 			onPanResponderRelease: (evt, gestureState) => {
-				if (gestureState.dy + pressedHeightRef.current < (itemWidth * rowsRef.current) / 2) {
+				if (gestureState.dy + pressedHeightRef.current < (itemHeight * rowsRef.current) / 2) {
 					Animated.timing(animatedContainerHeight.current, {
-						toValue: itemWidth,
+						toValue: itemHeight,
 						duration: 100,
 						useNativeDriver: false,
 					}).start((finish) => {
@@ -142,7 +130,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 				} else {
 					monthTranslateRef.current = 0;
 					Animated.timing(animatedContainerHeight.current, {
-						toValue: itemWidth * rowsRef.current,
+						toValue: itemHeight * rowsRef.current,
 						duration: 100,
 						useNativeDriver: false,
 					}).start((finish) => {
@@ -167,21 +155,20 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	).current;
 
 
-	console.log('monthTranslateRef.current :>> ', monthTranslateRef.current);
 	// 月定位
 	const monthPositionY = animatedContainerHeight.current.interpolate({
-		inputRange: [itemWidth, itemWidth * rowsRef.current],
+		inputRange: [itemHeight, itemHeight * rowsRef.current],
 		outputRange: [-monthTranslateRef.current, 0]
 	})
 
 	const weekPositionY = animatedContainerHeight.current.interpolate({
-		inputRange: [itemWidth, itemWidth * rowsRef.current],
+		inputRange: [itemHeight, itemHeight * rowsRef.current],
 		outputRange: [0, monthTranslateRef.current]
 	})
 
 
 
-
+	console.log('mode :>> ', mode);
 
 	return (
 
@@ -198,11 +185,11 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 							mode={mode}
 							current={currentDate}
 							setCurrent={setCurrentHandler}
-							layout={{ containerWidth, itemWidth }}
+							layout={{ containerWidth, itemWidth, itemHeight }}
 							onMonthPageChange={onMonthPageChange}
 							dataSource={monthDates}
 							monthChanged={monthChanged}
-							
+							themes={themes}
 						/>
 					</Animated.View>
 				</Animated.View>
@@ -213,10 +200,11 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 						mode={mode}
 						current={currentDate}
 						setCurrent={setCurrentHandler}
-						layout={{ containerWidth, itemWidth }}
+						layout={{ containerWidth, itemWidth, itemHeight }}
 						onWeekPageChange={onWeekPageChange}
 						dataSource={weekDates}
 						monthChanged={monthChanged}
+						themes={themes}
 					/>
 				</Animated.View>
 			</View>
