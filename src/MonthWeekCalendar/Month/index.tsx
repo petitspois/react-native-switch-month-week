@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import XDate from 'xdate';
-import { page, sameMonth } from '../../Utils';
+import { getMonthDates, sameMonth } from '../../Utils';
 import Day from '../Day';
 
 const areEqual = (prevProps, nextProps) => {
@@ -16,7 +16,7 @@ const areEqual = (prevProps, nextProps) => {
 
 const Month = React.memo((props: any) => {
     const { date, containerWidth, ...otherProps } = props;  
-    const pageData = page(new XDate(date), 0, true) ?? []
+    const pageData = getMonthDates(date, 0, true) ?? []
     return (
         <View style={[styles.page, { width: containerWidth}]}>
             {

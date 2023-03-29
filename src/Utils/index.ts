@@ -1,6 +1,7 @@
 import XDate from 'xdate'
 import moment from 'moment';
 import { NUMBER_OF_PAGES } from '../Constants';
+import _ from 'lodash';
 
 const latinNumbersPattern = /[0-9]/g;
 
@@ -9,28 +10,7 @@ function isValidXDate(date: Date) {
 }
 
 
-function getDatesArray(date: string | undefined, numberOfPages: number = NUMBER_OF_PAGES) {
-	const d = date || new XDate().toString();
-	const array = [];
-	const weekArray: string[] = []
-	for (let index = -numberOfPages; index <= numberOfPages; index++) {
-		const newDate = getDate(d, index);
-		array.push(newDate);
-	}
 
-	const week = moment(array[0]).day();
-	const startWeek: any = moment(array[0]).subtract(week, 'day')
-	const endWeek: any = moment(array[array.length - 1]).endOf('month')
-	const weekLength = endWeek.diff(startWeek, 'week') + 1;
-	for (let index = 0; index < weekLength; index++) {
-		if (!index) {
-			weekArray.push(startWeek.format('YYYY-MM-DD'))
-			continue;
-		}
-		weekArray.push(startWeek.add(1, 'week').format('YYYY-MM-DD'))
-	}
-	return array;
-}
 
 export const generateDates = (date: string, numberOfPages: number = NUMBER_OF_PAGES) => {
 	const d = moment(date).subtract(numberOfPages, 'month').startOf('month');
@@ -43,8 +23,8 @@ export const generateDates = (date: string, numberOfPages: number = NUMBER_OF_PA
 	// week
 	const week = moment(array[0]).day();
 	const startWeek: any = moment(array[0]).subtract(week, 'day')
-	const endWeek: any = moment(array[array.length - 1]).endOf('month')
-	const weekLength = endWeek.diff(startWeek, 'week') + 1;
+	const endWeek: any = moment(array[array.length - 1])
+	const weekLength = endWeek.diff(startWeek, 'week')+6;
 	for (let index = 0; index < weekLength; index++) {
 		if (!index) {
 			weekArray.push(startWeek.format('YYYY-MM-DD'))
@@ -52,6 +32,7 @@ export const generateDates = (date: string, numberOfPages: number = NUMBER_OF_PA
 		}
 		weekArray.push(startWeek.add(1, 'week').format('YYYY-MM-DD'))
 	}
+	console.log('object :>> ', weekArray);
 	return [array, weekArray];
 }
 
@@ -146,9 +127,10 @@ export function weekDayNames(firstDayOfWeek = 0) {
 
 
 
-export function page(date, firstDayOfWeek = 0, showSixWeeks = false) {
+export function getMonthDates(date: string, firstDayOfWeek = 0, showSixWeeks = false) {
 	//days [1-31]
-	const days = month(date);
+	const d = new XDate(date);
+	const days = month(d);
 	let before = [];
 	let after = [];
 	const fdow = (7 + firstDayOfWeek) % 7 || 7;

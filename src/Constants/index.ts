@@ -1,6 +1,6 @@
 import type { ITheme  } from './type';
 
-export const NUMBER_OF_PAGES = 12 * 2;
+export const NUMBER_OF_PAGES = 1 * 2;
 export const DATE_FORMAT = 'YYYY-MM-DD'
 
 export const theme: ITheme ={
@@ -29,3 +29,4 @@ export const theme: ITheme ={
     textMonthFontSize: 16,
     textDayHeaderFontSize: 16
   }
+

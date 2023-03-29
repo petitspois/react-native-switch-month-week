@@ -1,81 +1,82 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity } from 'react-native';
 import XDate from 'xdate';
+import CalendarContext from '../Context';
 import WeekDaysNames from './WeekDaysNames';
 import constants from '../Utils/constants';
 import { getMonthRows, getRowAboveTheWeek, generateDates, sameMonth } from '../Utils';
 import { MonthWeekCalendarProps, Mode } from './type'
+import { CalendarContextProps } from '../Context/type';
 import WeekCalendar from './WeekCalendar';
 import MonthCalendar from './MonthCalendar';
 import moment from 'moment';
-import { debounce } from 'lodash';
-import { theme } from '../Constants';
+import { theme as themes, DATE_FORMAT } from '../Constants';
 
 const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const themes = { ...theme, ...props.theme };
-	const { initialDate, boxWidth } = props;
-	const initDate = !!initialDate ? initialDate : new XDate().toString('yyyy-MM-dd')
+	const { calendarWidth, current } = props;
+	const context = useContext(CalendarContext)
+	const initDate = context.initDate;
 	//var
 	const defaultMode = 'week';
-	const containerWidth = boxWidth || windowWidth;
+	const containerWidth = calendarWidth || windowWidth;
 	const itemWidth = containerWidth / 7;
 	const itemHeight = containerWidth / 8;
 	//ref
 	const rowsRef = useRef(6 ?? getMonthRows(initDate));
 	const animatedContainerHeight = useRef(new Animated.Value(itemHeight));
 	const pressedHeightRef = useRef(itemHeight);
-	const monthTranslateRef = useRef<number>((getRowAboveTheWeek(initDate)) * itemHeight)
+	const monthPositionRef = useRef<number>((getRowAboveTheWeek(initDate)) * itemHeight)
 	//state
 	const [mode, setMode] = useState<Mode>(defaultMode);
 	const [currentDate, setCurrentDate] = useState(initDate)
 	const [monthDates, weekDates] = useMemo(() => generateDates(initDate), [initDate]);
+	const weekDatesMinMax = useMemo(() => [weekDates[0], weekDates[weekDates.length-1]], [weekDates])
+	const monthDatesMinMax = useMemo(() => [monthDates[0], monthDates[monthDates.length-1]], [monthDates])
 
+
+	const isWeekEdge = (date: string) => {
+    	return {isEndEdge: moment(date).isAfter(monthDatesMinMax[1], 'month'), isStartEdge: moment(date).isBefore(monthDatesMinMax[0], 'month')}
+	}
+
+	const isMonthEdge = (date: string) => {
+    	return {isEndEdge: moment(date).isAfter(monthDatesMinMax[1], 'month'), isStartEdge: moment(date).isBefore(monthDatesMinMax[0], 'month')}
+	}
 
 	const setCurrentHandler = (date: string) => {
 		setCurrentDate(date);
 	}
 
-	const monthChanged = (date: string) => {
-		props?.onMonthChange && props?.onMonthChange(moment(date).startOf('month').format('YYYY-MM-DD'));
-	}
-
-	const onWeekDayPress = (value: any) => {
-		if (value !== currentDate) {
-			setCurrentDate(value)
-		}
-	}
 
 	const onMonthDayPress = (value: any, rows: number) => {
 		if (value !== currentDate) {
-			console.log('rows :>> ', rows);
 			updateMonthTranslateRef(rows);
 			setCurrentDate(value)
 		}
 	}
 
-	const onMonthPageChange = (prevDate: string, curDate: string) => {
-		/**
-		 *  页面行数不一致需要更新
-		*/
-		monthTranslateRef.current = 0;
 
-	}
-
+	// week
 	const onWeekPageChange = (prevDate: string, curDate: string, rows: number) => {
 		updateMonthTranslateRef(rows);
 	}
 
+
+
 	const updateMonthTranslateRef = (rows: number) => {
-		monthTranslateRef.current = rows * itemHeight;
+		monthPositionRef.current = rows * itemHeight;
+	}
+
+	const updateMonthPosition = (rows: number) => {
+		monthPositionRef.current = rows * itemHeight;
 	}
 
 	// render
 	const renderKnob = () => {
 		return (
-			<View style={[styles.knobContainer, { backgroundColor: 'gold' }]} {...panResponder.panHandlers}>
+			<View style={[styles.knobContainer]} {...panResponder.panHandlers}>
 				<View style={[styles.knob]}></View>
 			</View>
 		)
@@ -128,7 +129,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 					})
 					return;
 				} else {
-					monthTranslateRef.current = 0;
 					Animated.timing(animatedContainerHeight.current, {
 						toValue: itemHeight * rowsRef.current,
 						duration: 100,
@@ -158,17 +158,13 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	// 月定位
 	const monthPositionY = animatedContainerHeight.current.interpolate({
 		inputRange: [itemHeight, itemHeight * rowsRef.current],
-		outputRange: [-monthTranslateRef.current, 0]
+		outputRange: [-monthPositionRef.current, 0]
 	})
 
 	const weekPositionY = animatedContainerHeight.current.interpolate({
 		inputRange: [itemHeight, itemHeight * rowsRef.current],
-		outputRange: [0, monthTranslateRef.current]
+		outputRange: [0, monthPositionRef.current]
 	})
-
-
-
-	console.log('mode :>> ', mode);
 
 	return (
 
@@ -181,30 +177,25 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 					<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
 						<MonthCalendar
 							initDate={initDate}
+							updateMonthPosition={updateMonthPosition}
 							onMonthDayPress={onMonthDayPress}
 							mode={mode}
-							current={currentDate}
-							setCurrent={setCurrentHandler}
 							layout={{ containerWidth, itemWidth, itemHeight }}
-							onMonthPageChange={onMonthPageChange}
 							dataSource={monthDates}
-							monthChanged={monthChanged}
 							themes={themes}
+							isEdge={isMonthEdge}
 						/>
 					</Animated.View>
 				</Animated.View>
 				<Animated.View style={{ position: 'absolute', top: weekPositionY, left: 0, zIndex: mode === 'week' ? 99 : -99, width: containerWidth, height: itemWidth }}>
 					<WeekCalendar
-						onWeekDayPress={onWeekDayPress}
 						initDate={initDate}
+						updateMonthPosition={updateMonthPosition}
 						mode={mode}
-						current={currentDate}
-						setCurrent={setCurrentHandler}
 						layout={{ containerWidth, itemWidth, itemHeight }}
-						onWeekPageChange={onWeekPageChange}
 						dataSource={weekDates}
-						monthChanged={monthChanged}
 						themes={themes}
+						isEdge={isWeekEdge}
 					/>
 				</Animated.View>
 			</View>
@@ -220,10 +211,10 @@ export default MonthWeekCalendar;
 const styles = StyleSheet.create({
 	containerWrapper: {
 		flex: 1,
-		backgroundColor: 'white',
 	},
 	weekNamesContainer: {
 		width: '100%',
+		height: 30,
 		flexDirection: 'row',
 	},
 
@@ -242,7 +233,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		width: '100%',
 		height: 24,
-		backgroundColor: 'white',
+		backgroundColor: '#f1f1f1',
 	},
 	knob: {
 		width: windowWidth / 14,

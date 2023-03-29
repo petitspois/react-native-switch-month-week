@@ -23,7 +23,9 @@ const Day = React.memo((props: any) => {
     const { onDayPress, current, date, style, disabled, layout, themes } = props;
 
     const _onDayPress = useCallback(() => {
-        onDayPress(date.toString('yyyy-MM-dd'))
+        if(current !== date.toString('yyyy-MM-dd')){
+            onDayPress(date.toString('yyyy-MM-dd'))
+        }
     }, [onDayPress, date])
 
     const itemContainerStyle = {

@@ -1,12 +1,24 @@
-import React from 'react';
-import { UpdateSources } from '../Commons';
+import { ViewStyle, ViewProps, StyleProp } from 'react-native';
+import { ITheme, UpdateSources } from '../Constants/type';
+
+export interface CalendarContextProviderProps extends ViewProps {
+    /** Initial date in 'yyyy-MM-dd' format. Default = now */
+    date?: string;
+    /** Specify theme properties to override specific styles for calendar parts */
+    theme?: ITheme;
+    /** Specify style for calendar container element */
+    style?: StyleProp<ViewStyle>;
+    updateSource: UpdateSources;
+    /** Callback for date change event */
+    onDateChanged?: (date: string, updateSource: UpdateSources) => void;
+    /** Callback for month change event */
+    onMonthChange?: (date: string, updateSource: UpdateSources) => void;
+}
 
 export interface CalendarContextProps {
+    initDate: string;
     date: string;
     prevDate: string;
     setDate: (date: string, source: UpdateSources) => void;
     updateSource: UpdateSources;
-    setDisabled: (disable: boolean) => void;
-    numberOfDays?: number;
-    timelineLeftInset?: number;
 }

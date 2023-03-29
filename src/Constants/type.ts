@@ -26,3 +26,13 @@ export interface ITheme{
     textMonthFontSize: TextStyle['fontSize'];
     textDayHeaderFontSize: TextStyle['fontSize'];
 }
+
+export enum UpdateSources {
+    CALENDAR_INIT = "calendarInit",
+    TODAY_PRESS = "todayPress",
+    LIST_DRAG = "listDrag",
+    DAY_PRESS = "dayPress",
+    MONTH_SCROLL = "monthScroll",
+    WEEK_SCROLL = "weekScroll",
+    PROP_UPDATE = "propUpdate"
+}
