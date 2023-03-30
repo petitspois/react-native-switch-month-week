@@ -25,6 +25,7 @@ export interface InfiniteListProps
     scrollViewProps?: ScrollViewProps;
     reloadPages?: (pageIndex: number) => void;
     positionIndex?: number;
+    mode?: 'week' | 'month';
 }
 
 const InfiniteList = (props: InfiniteListProps, ref: any) => {
@@ -42,7 +43,8 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
         initialPageIndex = 0,
         extendedState,
         scrollViewProps,
-        positionIndex = 0
+        positionIndex = 0,
+        mode = 'week'
     } = props;
 
     const dataProvider = useMemo(() => {
@@ -81,7 +83,6 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
 
             const { x, y } = event.nativeEvent.contentOffset;
             const newPageIndex = Math.round(isHorizontal ? x / pageWidth : y / pageHeight);
-
             if (pageIndex.current !== newPageIndex) {
                 if (pageIndex.current !== undefined) {
                     onPageChange?.(newPageIndex, pageIndex.current, { scrolledByUser: scrolledByUser.current });
@@ -155,6 +156,7 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
         <RecyclerListView
             // @ts-expect-error
             ref={listRef}
+            mode={mode}
             isHorizontal={isHorizontal}
             rowRenderer={renderItem}
             dataProvider={dataProvider}

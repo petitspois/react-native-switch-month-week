@@ -1,9 +1,6 @@
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native'
-import React, { useCallback, useMemo } from 'react'
-import { sameMonth } from '../../Utils';
+import React, { useCallback, useMemo, useContext } from 'react'
 import moment from 'moment';
-
-const { width: windowWidth } = Dimensions.get('window');
 
 
 const areEqual = (prevProps, nextProps) => {
@@ -20,8 +17,7 @@ const areEqual = (prevProps, nextProps) => {
 }
 
 const Day = React.memo((props: any) => {
-    const { onDayPress, current, date, style, disabled, layout, themes } = props;
-
+    const { onDayPress, current, date, style, disabled, layout, themes, isEdge } = props;
     const _onDayPress = useCallback(() => {
         if(current !== date.toString('yyyy-MM-dd')){
             onDayPress(date.toString('yyyy-MM-dd'))
@@ -42,7 +38,8 @@ const Day = React.memo((props: any) => {
     const selectedDayStyle = useMemo(() => {
         const today = moment().format('YYYY-MM-DD');
         const dateStr = date.toString('yyyy-MM-dd');
-        return dateStr === current && !disabled ? { backgroundColor: today === dateStr ? themes.todayTextColor : themes?.selectedDayBackgroundColor } : null;
+        const edge = isEdge ? isEdge(dateStr).isEndEdge || isEdge(dateStr).isStartEdge : false;
+        return dateStr === current && (!disabled || edge) ? { backgroundColor: today === dateStr ? themes.todayTextColor : themes?.selectedDayBackgroundColor } : null;
     }, [current, disabled])
 
     const dotSize = 4;

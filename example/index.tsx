@@ -14,7 +14,6 @@ const Example = () => {
                 <Text style={{ padding: 12, fontSize: 18, fontWeight: 'bold', color: 'red' }}>{currentMonth.slice(0, -3)}</Text>
             </View>
             <MonthWeekCalendarProvider onMonthChange={(date: string, type: any)=>{
-                console.log('Example :>> ', date, type);
                 setCurrentMonth(date)
             }}>
                 <MonthWeekCalendar />

@@ -11,6 +11,7 @@ import WeekCalendar from './WeekCalendar';
 import MonthCalendar from './MonthCalendar';
 import moment from 'moment';
 import { theme as themes, DATE_FORMAT } from '../Constants';
+import { UpdateSources } from '../Constants/type';
 
 const { width: windowWidth } = Dimensions.get('window');
 
@@ -37,11 +38,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const monthDatesMinMax = useMemo(() => [monthDates[0], monthDates[monthDates.length-1]], [monthDates])
 
 
-	const isWeekEdge = (date: string) => {
-    	return {isEndEdge: moment(date).isAfter(monthDatesMinMax[1], 'month'), isStartEdge: moment(date).isBefore(monthDatesMinMax[0], 'month')}
-	}
-
-	const isMonthEdge = (date: string) => {
+	const isEdge = (date: string) => {
     	return {isEndEdge: moment(date).isAfter(monthDatesMinMax[1], 'month'), isStartEdge: moment(date).isBefore(monthDatesMinMax[0], 'month')}
 	}
 
@@ -183,7 +180,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 							layout={{ containerWidth, itemWidth, itemHeight }}
 							dataSource={monthDates}
 							themes={themes}
-							isEdge={isMonthEdge}
+							isEdge={isEdge}
 						/>
 					</Animated.View>
 				</Animated.View>
@@ -195,7 +192,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 						layout={{ containerWidth, itemWidth, itemHeight }}
 						dataSource={weekDates}
 						themes={themes}
-						isEdge={isWeekEdge}
+						isEdge={isEdge}
 					/>
 				</Animated.View>
 			</View>

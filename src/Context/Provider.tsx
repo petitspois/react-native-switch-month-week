@@ -28,7 +28,6 @@ const CalendarProvider = (props: CalendarContextProviderProps) => {
         }
     }, [date]);
     const _setDate = useCallback((date: string, updateSource: UpdateSources) => {
-        console.log('currDate.current :>> ', currDate.current);
         prevDate.current = currDate.current;
         currDate.current = date;
         setCurrentDate(date);

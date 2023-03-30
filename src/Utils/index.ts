@@ -1,6 +1,6 @@
 import XDate from 'xdate'
 import moment from 'moment';
-import { NUMBER_OF_PAGES } from '../Constants';
+import { DATE_FORMAT, NUMBER_OF_PAGES } from '../Constants';
 import _ from 'lodash';
 
 const latinNumbersPattern = /[0-9]/g;
@@ -32,7 +32,6 @@ export const generateDates = (date: string, numberOfPages: number = NUMBER_OF_PA
 		}
 		weekArray.push(startWeek.add(1, 'week').format('YYYY-MM-DD'))
 	}
-	console.log('object :>> ', weekArray);
 	return [array, weekArray];
 }
 
@@ -55,6 +54,15 @@ export const getRowAboveTheWeek = (dateStr: string) => {
 	const day = moment(dateStr).startOf('month').day();
 	const endDay = moment(dateStr).date();
 	return Math.ceil((day + endDay) / 7) - 1;
+}
+
+export const getRowPrevMonthLastDay = (dateStr: string) => {
+	const day = moment(dateStr).subtract(1, 'month').endOf('month').format(DATE_FORMAT)
+	return getRowAboveTheWeek(day)
+}
+
+export const getRowInPage = (dateStr: string) => {
+	return getRowPrevMonthLastDay(dateStr) + getRowAboveTheWeek(dateStr)
 }
 
 export function sameDate(a, b) {
