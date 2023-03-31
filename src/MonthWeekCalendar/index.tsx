@@ -163,6 +163,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		outputRange: [0, monthPositionRef.current]
 	})
 
+
 	return (
 
 		<View style={[styles.containerWrapper]}>

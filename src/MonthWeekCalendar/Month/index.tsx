@@ -11,7 +11,6 @@ const areEqual = (prevProps, nextProps) => {
     ) {
         return false;
     }
-    return true;
 }
 
 const Month = React.memo((props: any) => {

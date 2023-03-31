@@ -2,22 +2,21 @@ import inRange from 'lodash/inRange';
 import debounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 
-import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
-import { ScrollViewProps } from 'react-native';
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ScrollViewProps, View, Animated, FlatListProps } from 'react-native';
 import { DataProvider, LayoutProvider, RecyclerListView, RecyclerListViewProps } from 'recyclerlistview';
-
+import { FlashList, FlashListProps, ViewToken } from "@shopify/flash-list";
 import constants from '../Utils/constants';
 import { useCombinedRefs } from '../Hooks';
 
-const dataProviderMaker = (items: string[]) => new DataProvider((item1, item2) => item1 !== item2).cloneWithRows(items);
 
 export interface InfiniteListProps
     extends Omit<RecyclerListViewProps, 'dataProvider' | 'layoutProvider' | 'rowRenderer'> {
     data: any[];
-    renderItem: RecyclerListViewProps['rowRenderer'];
+    renderItem: FlashListProps<string>["renderItem"];
     pageWidth?: number;
     pageHeight?: number;
-    onPageChange?: (pageIndex: number, prevPageIndex: number, info: { scrolledByUser: boolean }) => void;
+    onPageChange?: (page: ViewToken, prevPage: ViewToken, info: { scrolledByUser: boolean }) => void;
     onReachEdge?: (pageIndex: number) => void;
     onReachNearEdge?: (pageIndex: number) => void;
     onReachNearEdgeThreshold?: number;
@@ -47,22 +46,9 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
         mode = 'week'
     } = props;
 
-    const dataProvider = useMemo(() => {
-        return dataProviderMaker(data);
-    }, [data]);
-
-    const layoutProvider = useRef(
-        new LayoutProvider(
-            () => 'page',
-            (_type, dim) => {
-                dim.width = pageWidth;
-                dim.height = pageHeight;
-            }
-        )
-    );
 
     const listRef = useCombinedRefs(ref);
-    const pageIndex = useRef<number>();
+    const page = useRef<ViewToken>();
     const isOnEdge = useRef(false);
     const isNearEdge = useRef(false);
     const scrolledByUser = useRef(false);
@@ -77,25 +63,34 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
         }, 0);
     }, [data]);
 
-    const onScroll = useCallback(
-        (event, offsetX, offsetY) => {
-            reloadPagesDebounce?.cancel();
 
-            const { x, y } = event.nativeEvent.contentOffset;
-            const newPageIndex = Math.round(isHorizontal ? x / pageWidth : y / pageHeight);
-            if (pageIndex.current !== newPageIndex) {
-                if (pageIndex.current !== undefined) {
-                    onPageChange?.(newPageIndex, pageIndex.current, { scrolledByUser: scrolledByUser.current });
+    //列表滚动变化监听配置
+    const viewabilityConfig =  {
+        viewAreaCoveragePercentThreshold: 85,
+    } 
+
+    /**
+     *  可视区域变化
+     */
+    const onViewableItemsChanged = ({ viewableItems, changed }: {viewableItems: ViewToken[], changed: ViewToken[]}) => {
+        const newPageArr: ViewToken[] = changed.filter(item=>item.isViewable);
+        if(
+            newPageArr.length
+        ){
+            const newPage = newPageArr[0];
+            if(page.current?.index !== newPage.index){
+
+                if (page.current?.index !== undefined) {
+                    onPageChange?.(newPage, page.current, { scrolledByUser: scrolledByUser.current });
                     scrolledByUser.current = false;
-
                     isOnEdge.current = false;
                     isNearEdge.current = false;
 
-                    if (newPageIndex === 0 || newPageIndex === data.length - 1) {
+                    if (newPage.index === 0 || newPage.index === data.length - 1) {
                         isOnEdge.current = true;
                     } else if (
                         onReachNearEdgeThreshold &&
-                        !inRange(newPageIndex, onReachNearEdgeThreshold, data.length - onReachNearEdgeThreshold)
+                        !inRange(newPage.index as number, onReachNearEdgeThreshold, data.length - onReachNearEdgeThreshold)
                     ) {
                         isNearEdge.current = true;
                     }
@@ -104,29 +99,28 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
                 if (isHorizontal && constants.isAndroid) {
                     // NOTE: this is done only to handle 'onMomentumScrollEnd' not being called on Android
                     setTimeout(() => {
-                        onMomentumScrollEnd(event);
+                        onMomentumScrollEnd({});
                     }, 100);
                 }
 
-                pageIndex.current = newPageIndex;
+                page.current = newPage;
             }
+        }
+    };
 
-            props.onScroll?.(event, offsetX, offsetY);
-        },
-        [props.onScroll, onPageChange, data.length, reloadPagesDebounce]
-    );
+    const viewabilityConfigCallbackPairs = useRef<FlatListProps<string>['viewabilityConfigCallbackPairs']>([{ viewabilityConfig, onViewableItemsChanged }]);
 
+    
     const onMomentumScrollEnd = useCallback(
-        event => {
-            if (pageIndex.current) {
+        (event: any) => {
+            if (page.current?.index) {
                 if (isOnEdge.current) {
-                    onReachEdge?.(pageIndex.current!);
-                    reloadPagesDebounce?.(pageIndex.current);
+                    onReachEdge?.(page.current.index!);
+                    reloadPagesDebounce?.(page.current.index);
                 } else if (isNearEdge.current) {
-                    reloadPagesDebounce?.(pageIndex.current);
-                    onReachNearEdge?.(pageIndex.current!);
+                    reloadPagesDebounce?.(page.current.index);
+                    onReachNearEdge?.(page.current.index!);
                 }
-
                 scrollViewProps?.onMomentumScrollEnd?.(event);
             }
         },
@@ -137,38 +131,53 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
         scrolledByUser.current = true;
     }, []);
 
-    const scrollViewPropsMemo = useMemo(() => {
-        return {
-            pagingEnabled: isHorizontal,
-            bounces: false,
-            ...scrollViewProps,
-            onScrollBeginDrag,
-            onMomentumScrollEnd,
-            decelerationRate: 0
-        };
-    }, [onScrollBeginDrag, onMomentumScrollEnd, scrollViewProps, isHorizontal]);
 
     const style = useMemo(() => {
         return { height: pageHeight };
     }, [pageHeight]);
 
     return (
-        <RecyclerListView
-            // @ts-expect-error
-            ref={listRef}
-            mode={mode}
-            isHorizontal={isHorizontal}
-            rowRenderer={renderItem}
-            dataProvider={dataProvider}
-            layoutProvider={layoutProvider.current}
-            extendedState={extendedState}
-            initialRenderIndex={initialPageIndex}
-            renderAheadOffset={7 * pageWidth}
-            onScroll={onScroll}
-            style={style}
-            scrollViewProps={scrollViewPropsMemo}
-        />
-    );
+        <View style={style}>
+            <FlashList
+                ref={listRef}
+                data={data}
+                mode={mode}
+                pagingEnabled
+                bounces={false}
+                horizontal={isHorizontal}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => mode + '-' +item}
+                estimatedItemSize={pageWidth}
+                initialScrollIndex={initialPageIndex}
+                showsHorizontalScrollIndicator={false}
+                viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
+                // onScroll={onScroll}
+                extraData={extendedState}
+                onScrollBeginDrag={onScrollBeginDrag}
+                onMomentumScrollEnd={onMomentumScrollEnd}
+                decelerationRate={0.0}
+                disableIntervalMomentum
+            />
+        </View>
+    )
+
+    // return (
+    //     <RecyclerListView
+    //         // @ts-expect-error
+    //         ref={listRef}
+    //         mode={mode}
+    //         isHorizontal={isHorizontal}
+    //         rowRenderer={renderItem}
+    //         dataProvider={dataProvider}
+    //         layoutProvider={layoutProvider.current}
+    //         extendedState={extendedState}
+    //         initialRenderIndex={initialPageIndex}
+    //         renderAheadOffset={7 * pageWidth}
+    //         onScroll={onScroll}
+    //         style={style}
+    //         scrollViewProps={scrollViewPropsMemo}
+    //     />
+    // );
 };
 
 export default forwardRef(InfiniteList);

@@ -1,16 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import XDate from 'xdate';
-import { page, sameWeek, getWeekDates } from '../../Utils';
+import { getWeekDates } from '../../Utils';
 import Day from '../Day';
+import isEqual from 'lodash/isEqual';
+
 
 const areEqual = (prevProps, nextProps) => {
-    if(
-        sameWeek(nextProps.current, nextProps.date)
-    ){
-        return false;
-    }
-    return true;
+    return isEqual(prevProps, nextProps);
 }
 
 const Week = React.memo((props: any) => {

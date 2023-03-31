@@ -59,7 +59,7 @@ const Day = React.memo((props: any) => {
     }, [current, disabled])
 
 return (
-    <TouchableOpacity key={date.toString('yyyy-MM-dd')} activeOpacity={1} onPress={_onDayPress}>
+    <TouchableOpacity  activeOpacity={1} onPress={_onDayPress}>
         <View style={[itemContainerStyle, styles.center, style]} >
             <View style={[itemInnerStyle, styles.center, selectedDayStyle]}>
                 <Text style={[styles.itemText, textStyle]}>{date.getDate()}</Text>

@@ -8,6 +8,7 @@ import Week from '../Week';
 import moment from 'moment';
 import { ITheme } from '../../Constants/type';
 import CalendarContext from '../../Context';
+import { ListRenderItemInfo, ViewToken } from '@shopify/flash-list';
 
 
 interface WeekCalendarProps {
@@ -32,7 +33,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 	const { date, prevDate, updateSource } = context;
 	const initialIndex = useMemo(() => dataSource.findIndex(item => sameWeek(item, initDate)), [])
 	const list = useRef<any>();
-	const scrolledByDifferent = useRef<boolean>(false);
+	const prevWeek = useRef<number>(moment(date).day());
 
 	// state
 	const extraWeekData = {
@@ -40,15 +41,16 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 	}
 
 
-	const onPageChange = useCallback((pageIndex: number, _prevPage: number, { scrolledByUser }: any) => {
+	const onPageChange = useCallback((page: ViewToken, prevPage: ViewToken, { scrolledByUser }: any) => {
 		if (
-			!scrolledByDifferent.current &&
-			list.current.props.mode === 'week'
+			// !scrolledByDifferent.current &&
+			// list.current.props.mode === 'week'
+			scrolledByUser
 		) {
 			// 上一页选中的是星期几
-			const prevDay = moment(date).day();
+			const prevDay = prevWeek.current;
 			// 当前周第一天周日
-			const weekFirstDay = dataSource[pageIndex];
+			const weekFirstDay = page.item;
 			const weekCurrent = moment(weekFirstDay).add(prevDay, 'days').format(DATE_FORMAT);
 			const rows = getRowAboveTheWeek(weekCurrent)
 			if (isEdge(weekCurrent).isEndEdge) {
@@ -58,12 +60,12 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 			}
 			context?.setDate(weekCurrent, UpdateSources.WEEK_SCROLL)
 		}
-	}, [dataSource, date]);
+	}, [date]);
 
 
-	const renderWeekItem = useCallback((_type: any, item: string) => {
+	const renderWeekItem = useCallback(({ item, index, target }: ListRenderItemInfo<string>) => {
 		return (
-			<Week layout={layout} key={item} mode={mode} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
+			<Week layout={layout} mode={mode} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
 		)
 	}, [date]);
 
@@ -84,26 +86,20 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 		if (isEdge(value).isEndEdge) {
 			updateMonthPosition(getRowInPage(value));
 		}
+		prevWeek.current = moment(value).day();
 		context?.setDate(value, UpdateSources.WEEK_DAY_PRESS)
-	}
-
-	const onMomentumScrollEnd = () => {
-		if (scrolledByDifferent.current) {
-			scrolledByDifferent.current = false;
-		}
 	}
 
 
 	useEffect(() => {
 		// TODO: 根据月点击的日期，更新周的位置
-		if (
-			!sameWeek(prevDate, date) &&
-			(updateSource === UpdateSources.MONTH_SCROLL || updateSource === UpdateSources.MONTH_DAY_PRESS)
-		) {
-			scrolledByDifferent.current = true;
-			const pageIndex = dataSource.findIndex(item => sameWeek(item, date));
-			list.current?.scrollToOffset?.(pageIndex * layout.containerWidth, 0, false);
-		}
+		// if (
+		// 	!sameWeek(prevDate, date) &&
+		// 	(updateSource === UpdateSources.MONTH_SCROLL || updateSource === UpdateSources.MONTH_DAY_PRESS)
+		// ) {
+		// 	const index = dataSource.findIndex(item => sameWeek(item, date));
+		// 	list.current?.scrollToIndex?.({animated:true, index});
+		// }
 	}, [date])
 
 
@@ -120,13 +116,10 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 			pageHeight={layout.itemHeight}
 			pageWidth={layout.containerWidth}
 			onPageChange={onPageChange}
-			scrollViewProps={{
-				showsHorizontalScrollIndicator: false,
-				onMomentumScrollEnd,
-			}} />
-
+			/>
 	)
 }
+
 
 export default WeekCalendar
 

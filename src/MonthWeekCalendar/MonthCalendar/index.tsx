@@ -8,6 +8,7 @@ import Month from '../Month';
 import moment from 'moment';
 import { UpdateSources } from '../../Constants/type';
 import CalendarContext from '../../Context';
+import type { ListRenderItemInfo, ViewToken } from '@shopify/flash-list';
 
 interface MonthCalendarProps {
 	initDate: string;
@@ -31,41 +32,35 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 	const context = useContext(CalendarContext)
 	const { date, prevDate, updateSource } = context;
 	const list = useRef<any>();
-	const scrolledByDifferent = useRef<boolean>(false);
 	// state
 	const extraData = {
 		date: context.date
 	}
 
-	const onPageChange = useCallback((pageIndex: number, _prevPage: number, { scrolledByUser }: any) => {
+	const onPageChange = useCallback((page: ViewToken, _prevPage: number, { scrolledByUser }: any) => {
 		// TODO: 点击不同月份的日期，不需要执行对应-2的逻辑
+		console.log('12321321 :>> ', 12321321);
 		if (
-			!scrolledByDifferent.current &&
-			list.current.props.mode === 'month'
+			// list.current.props.mode === 'month'
+			scrolledByUser
 		) {
 			updateMonthPosition(0)
-			context?.setDate(dataSource[pageIndex], UpdateSources.MONTH_SCROLL)
+			context?.setDate(page.item, UpdateSources.MONTH_SCROLL)
 		}
-	}, [dataSource, updateSource]);
+	}, []);
 
 	const onDayPress = useCallback((newDate: string) => {
 		const rows = isEdge(newDate).isEndEdge ? getRowInPage(newDate) : isEdge(newDate).isStartEdge ? 0 : getRowAboveTheWeek(newDate);
 		updateMonthPosition(rows)
 		context?.setDate(newDate, UpdateSources.MONTH_DAY_PRESS);
-	}, [])
+	}, [dataSource])
 
-	const renderItem = useCallback((_type: any, item: string) => {
+	const renderItem = useCallback(({ item, index, target }: ListRenderItemInfo<string>) => {
 		return (
 			<Month isEdge={isEdge} layout={layout} mode={mode} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
 		)
 	}, [date]);
 
-
-	const onMomentumScrollEnd = () => {
-		if(scrolledByDifferent.current){
-			scrolledByDifferent.current = false;
-		}
-	}
 
 	useEffect(() => {
 		/**
@@ -80,8 +75,7 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 			const pageIndex = dataSource.findIndex(item => sameMonth(item, date))
 			// TODO: 超过边界不需要处理
 			if (pageIndex !== -1) {
-				scrolledByDifferent.current = true;
-				list.current?.scrollToOffset?.(pageIndex * layout.containerWidth, 0, false);
+				list.current?.scrollToIndex?.({animated:true, index: pageIndex});
 			}
 		}
 
@@ -94,10 +88,8 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 				 *  TODO:-2
 				 *  点击不是本月的日期，需要滚动到下一个月
 				 */
-				console.log('33333 :>> ', 33333);
-				scrolledByDifferent.current = true;
-				const pageIndex = dataSource.findIndex(item => sameMonth(item, date))
-				list.current?.scrollToOffset?.(pageIndex * layout.containerWidth, 0, true);
+				const index = dataSource.findIndex(item => sameMonth(item, date))
+				list.current?.scrollToIndex?.({animated:true, index});
 			}
 		}
 
@@ -118,10 +110,7 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 			pageHeight={layout.itemHeight * 6}
 			pageWidth={layout.containerWidth}
 			onPageChange={onPageChange}
-			scrollViewProps={{
-				showsHorizontalScrollIndicator: false,
-				onMomentumScrollEnd
-			}} />
+			/>
 	)
 }
 
