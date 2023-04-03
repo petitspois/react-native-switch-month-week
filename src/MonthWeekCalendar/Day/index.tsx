@@ -1,15 +1,16 @@
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native'
 import React, { useCallback, useMemo, useContext } from 'react'
 import moment from 'moment';
+import _ from 'lodash';
 
 
 const areEqual = (prevProps, nextProps) => {
     if (
         (
             nextProps.current === nextProps.date.toString('yyyy-MM-dd') ||
-            prevProps.current === nextProps.date.toString('yyyy-MM-dd')
-        ) &&
-        nextProps.current !== prevProps.current
+            prevProps.current === nextProps.date.toString('yyyy-MM-dd') ||
+            !_.isEqual(prevProps.markedDates, nextProps.markedDates)
+        ) 
     ) {
         return false;
     }
@@ -17,9 +18,9 @@ const areEqual = (prevProps, nextProps) => {
 }
 
 const Day = React.memo((props: any) => {
-    const { onDayPress, current, date, style, disabled, layout, themes, isEdge } = props;
+    const { onDayPress, current, date, style, disabled, layout, themes, isEdge, markedDates } = props;
     const _onDayPress = useCallback(() => {
-        if(current !== date.toString('yyyy-MM-dd')){
+        if (current !== date.toString('yyyy-MM-dd')) {
             onDayPress(date.toString('yyyy-MM-dd'))
         }
     }, [onDayPress, date])
@@ -44,8 +45,10 @@ const Day = React.memo((props: any) => {
 
     const dotSize = 4;
     const dotStyle = useMemo(() => {
-        return { left: itemInnerStyle.width / 2 - dotSize / 2, width: dotSize, height: dotSize, borderRadius: 100, backgroundColor: themes.dotColor }
-    }, [themes])
+    console.log('markedDates123 :>> ', markedDates);
+        const dateStr = date.toString('yyyy-MM-dd');
+        return !!markedDates?.[dateStr]?.marked ? { left: itemInnerStyle.width / 2 - dotSize / 2, width: dotSize, height: dotSize, borderRadius: 100, backgroundColor: themes.dotColor } : null;
+    }, [themes, markedDates])
 
     const textStyle = useMemo(() => {
         const today = moment().format('YYYY-MM-DD');
@@ -58,16 +61,16 @@ const Day = React.memo((props: any) => {
                     null;
     }, [current, disabled])
 
-return (
-    <TouchableOpacity  activeOpacity={1} onPress={_onDayPress}>
-        <View style={[itemContainerStyle, styles.center, style]} >
-            <View style={[itemInnerStyle, styles.center, selectedDayStyle]}>
-                <Text style={[styles.itemText, textStyle]}>{date.getDate()}</Text>
-                <View style={[styles.dot, dotStyle]}></View>
+    return (
+        <TouchableOpacity activeOpacity={1} onPress={_onDayPress}>
+            <View style={[itemContainerStyle, styles.center, style]} >
+                <View style={[itemInnerStyle, styles.center, selectedDayStyle]}>
+                    <Text style={[styles.itemText, textStyle]}>{date.getDate()}</Text>
+                    <View style={[styles.dot, dotStyle]}></View>
+                </View>
             </View>
-        </View>
-    </TouchableOpacity>
-)
+        </TouchableOpacity>
+    )
 }, areEqual)
 
 export default Day

@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity, ViewProps } from 'react-native';
 import XDate from 'xdate';
 import CalendarContext from '../Context';
 import WeekDaysNames from './WeekDaysNames';
@@ -17,7 +17,7 @@ const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const { calendarWidth, current } = props;
+	const { calendarWidth, markedDates } = props;
 	const context = useContext(CalendarContext)
 	const initDate = context.initDate;
 	//var
@@ -30,61 +30,82 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const animatedContainerHeight = useRef(new Animated.Value(itemHeight));
 	const pressedHeightRef = useRef(itemHeight);
 	const monthPositionRef = useRef<number>((getRowAboveTheWeek(initDate)) * itemHeight)
+	const modeRef = useRef<'week' | 'month'>('week');
 	//state
-	const [mode, setMode] = useState<Mode>(defaultMode);
+	const [calendarPointer, setCalendarPointer] = useState<ViewProps['pointerEvents']>('auto')
 	const [currentDate, setCurrentDate] = useState(initDate)
 	const [monthDates, weekDates] = useMemo(() => generateDates(initDate), [initDate]);
-	const weekDatesMinMax = useMemo(() => [weekDates[0], weekDates[weekDates.length-1]], [weekDates])
-	const monthDatesMinMax = useMemo(() => [monthDates[0], monthDates[monthDates.length-1]], [monthDates])
+	const weekDatesMinMax = useMemo(() => [weekDates[0], weekDates[weekDates.length - 1]], [weekDates])
+	const monthDatesMinMax = useMemo(() => [monthDates[0], monthDates[monthDates.length - 1]], [monthDates])
 
 
 	const isEdge = (date: string) => {
-    	return {isEndEdge: moment(date).isAfter(monthDatesMinMax[1], 'month'), isStartEdge: moment(date).isBefore(monthDatesMinMax[0], 'month')}
-	}
-
-	const setCurrentHandler = (date: string) => {
-		setCurrentDate(date);
-	}
-
-
-	const onMonthDayPress = (value: any, rows: number) => {
-		if (value !== currentDate) {
-			updateMonthTranslateRef(rows);
-			setCurrentDate(value)
-		}
-	}
-
-
-	// week
-	const onWeekPageChange = (prevDate: string, curDate: string, rows: number) => {
-		updateMonthTranslateRef(rows);
-	}
-
-
-
-	const updateMonthTranslateRef = (rows: number) => {
-		monthPositionRef.current = rows * itemHeight;
+		return { isEndEdge: moment(date).isAfter(monthDatesMinMax[1], 'month'), isStartEdge: moment(date).isBefore(monthDatesMinMax[0], 'month') }
 	}
 
 	const updateMonthPosition = (rows: number) => {
 		monthPositionRef.current = rows * itemHeight;
 	}
 
+
+	const knobRotateLeft = animatedContainerHeight.current.interpolate({
+		inputRange: [itemHeight, itemHeight * 6],
+		outputRange: ['0deg', '-30deg']
+	})
+
+	const knobRotateRight = animatedContainerHeight.current.interpolate({
+		inputRange: [itemHeight, itemHeight * rowsRef.current],
+		outputRange: ['0deg', '30deg']
+	})
+
+	const knobClick = () => {
+		modeRef.current === 'week' ? openCalendar() : closeCalendar();
+	}
+
 	// render
 	const renderKnob = () => {
 		return (
-			<View style={[styles.knobContainer]} {...panResponder.panHandlers}>
-				<View style={[styles.knob]}></View>
+			<View style={[styles.knobContainer, styles.containerWrapperShadow]}>
+				<TouchableOpacity onPress={knobClick} activeOpacity={1}>
+					<View style={styles.knobItem} >
+						<Animated.View style={[styles.knob, { transform: [{ rotate: knobRotateLeft }] }]} />
+						<Animated.View style={[styles.knob, { left: 17, transform: [{ rotate: knobRotateRight }] }]} />
+					</View>
+				</TouchableOpacity>
 			</View>
 		)
 	}
 
 
 	const isAValidMovement = (distanceX, distanceY) => {
-		const moveTravelledFarEnough =
-			Math.abs(distanceY) > Math.abs(distanceX) && Math.abs(distanceY) > 2;
-		return moveTravelledFarEnough;
+		return Math.abs(distanceY) > Math.abs(distanceX) && Math.abs(distanceY) > 36;
 	};
+
+	const openCalendar = (cb?: (mode: 'week' | 'month') => void) => {
+		Animated.timing(animatedContainerHeight.current, {
+			toValue: itemHeight * 6,
+			duration: 100,
+			useNativeDriver: false,
+		}).start((finish) => {
+			if (finish) {
+				modeRef.current = 'month'
+				cb && cb('month')
+			}
+		})
+	}
+
+	const closeCalendar = (cb?: (mode: 'week' | 'month') => void) => {
+		Animated.timing(animatedContainerHeight.current, {
+			toValue: itemHeight,
+			duration: 100,
+			useNativeDriver: false,
+		}).start((finish) => {
+			if (finish) {
+				modeRef.current = 'week'
+				cb && cb('week')
+			}
+		})
+	}
 
 	const panResponder = useRef(
 		PanResponder.create({
@@ -92,10 +113,8 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 			onMoveShouldSetPanResponder: (evt, gestureState) => {
 				return isAValidMovement(gestureState.dx, gestureState.dy)
 			},
-
 			onPanResponderGrant: (evt, gestureState) => {
 				// 开始手势操作。给用户一些视觉反馈，让他们知道发生了什么事情！
-
 				// gestureState.{x,y} 现在会被设置为0
 				pressedHeightRef.current = animatedContainerHeight.current._value;
 			},
@@ -115,32 +134,27 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 			onPanResponderTerminationRequest: (evt, gestureState) => true,
 			onPanResponderRelease: (evt, gestureState) => {
 				if (gestureState.dy + pressedHeightRef.current < (itemHeight * rowsRef.current) / 2) {
-					Animated.timing(animatedContainerHeight.current, {
-						toValue: itemHeight,
-						duration: 100,
-						useNativeDriver: false,
-					}).start((finish) => {
-						if (finish) {
-							setMode('week')
-						}
-					})
+					closeCalendar();
 					return;
 				} else {
-					Animated.timing(animatedContainerHeight.current, {
-						toValue: itemHeight * rowsRef.current,
-						duration: 100,
-						useNativeDriver: false,
-					}).start((finish) => {
-						if (finish) {
-							setMode('month')
-						}
-					})
+					openCalendar();
 					return;
 				}
 				// 用户放开了所有的触摸点，且此时视图已经成为了响应者。
 				// 一般来说这意味着一个手势操作已经成功完成。
 			},
+			onPanResponderEnd: (evt, gestureState) => {
+				// 用户放开了所有的触摸点，且此时视图已经成为了响应者。
+				// 一般来说这意味着一个手势操作已经成功完成。
+			},
 			onPanResponderTerminate: (evt, gestureState) => {
+				if (gestureState.dy + pressedHeightRef.current < (itemHeight * rowsRef.current) / 2) {
+					closeCalendar();
+					return;
+				} else {
+					openCalendar();
+					return;
+				}
 				// 另一个组件已经成为了新的响应者，所以当前手势将被取消。
 			},
 			onShouldBlockNativeResponder: (evt, gestureState) => {
@@ -152,52 +166,67 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	).current;
 
 
+
 	// 月定位
 	const monthPositionY = animatedContainerHeight.current.interpolate({
-		inputRange: [itemHeight, itemHeight * rowsRef.current],
+		inputRange: [itemHeight, itemHeight * 6],
 		outputRange: [-monthPositionRef.current, 0]
 	})
 
 	const weekPositionY = animatedContainerHeight.current.interpolate({
-		inputRange: [itemHeight, itemHeight * rowsRef.current],
+		inputRange: [itemHeight, itemHeight * 6],
 		outputRange: [0, monthPositionRef.current]
+	})
+
+	const weekZIndex = animatedContainerHeight.current.interpolate({
+		inputRange: [itemHeight, itemHeight * 6],
+		outputRange: [99, -99]
 	})
 
 
 	return (
-
 		<View style={[styles.containerWrapper]}>
 			<View style={[styles.weekNamesContainer]}>
 				<WeekDaysNames dayNames={constants.dayNamesShort} firstDay={0} />
 			</View>
-			<View>
-				<Animated.View style={[{ overflow: 'hidden', height: animatedContainerHeight.current, backgroundColor: 'white' }]}>
-					<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
-						<MonthCalendar
+			<View {...panResponder.panHandlers} pointerEvents={calendarPointer}>
+				<View>
+					<Animated.View style={[{ overflow: 'hidden', height: animatedContainerHeight.current, backgroundColor: 'white' }]}>
+						<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
+							<MonthCalendar
+								initDate={initDate}
+								updateMonthPosition={updateMonthPosition}
+								layout={{ containerWidth, itemWidth, itemHeight }}
+								dataSource={monthDates}
+								themes={themes}
+								isEdge={isEdge}
+								markedDates={markedDates}
+							/>
+						</Animated.View>
+					</Animated.View>
+					<Animated.View
+						style={{
+							position: 'absolute',
+							top: weekPositionY,
+							left: 0,
+							zIndex: weekZIndex,
+							width: containerWidth,
+							height: itemWidth
+						}}
+					>
+						<WeekCalendar
 							initDate={initDate}
 							updateMonthPosition={updateMonthPosition}
-							onMonthDayPress={onMonthDayPress}
-							mode={mode}
 							layout={{ containerWidth, itemWidth, itemHeight }}
-							dataSource={monthDates}
+							dataSource={weekDates}
 							themes={themes}
+							markedDates={markedDates}
 							isEdge={isEdge}
 						/>
 					</Animated.View>
-				</Animated.View>
-				<Animated.View style={{ position: 'absolute', top: weekPositionY, left: 0, zIndex: mode === 'week' ? 99 : -99, width: containerWidth, height: itemWidth }}>
-					<WeekCalendar
-						initDate={initDate}
-						updateMonthPosition={updateMonthPosition}
-						mode={mode}
-						layout={{ containerWidth, itemWidth, itemHeight }}
-						dataSource={weekDates}
-						themes={themes}
-						isEdge={isEdge}
-					/>
-				</Animated.View>
+				</View>
+				{renderKnob()}
 			</View>
-			{renderKnob()}
 		</View>
 	);
 };
@@ -208,7 +237,14 @@ export default MonthWeekCalendar;
 
 const styles = StyleSheet.create({
 	containerWrapper: {
-		flex: 1,
+		backgroundColor: 'white'
+	},
+	containerWrapperShadow: {
+		shadowColor: '#ddd',
+		shadowOffset: { width: 1, height: 1 },
+		shadowOpacity: 0.4,
+		shadowRadius: 3,
+		elevation: 5,
 	},
 	weekNamesContainer: {
 		width: '100%',
@@ -231,12 +267,21 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		width: '100%',
 		height: 24,
-		backgroundColor: '#f1f1f1',
+		backgroundColor: 'white'
+	},
+	knobItem: {
+		position: 'relative',
+		flexDirection: 'row',
+		alignItems: 'center',
+		width: 40,
+		height: 24,
 	},
 	knob: {
-		width: windowWidth / 14,
-		height: 6,
-		borderRadius: 3,
-		backgroundColor: 'silver',
+		position: 'absolute',
+		width: 18,
+		height: 4,
+		left: 4,
+		borderRadius: 4,
+		backgroundColor: '#ccc',
 	}
 })

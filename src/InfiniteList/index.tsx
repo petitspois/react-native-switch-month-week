@@ -151,12 +151,12 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
                 initialScrollIndex={initialPageIndex}
                 showsHorizontalScrollIndicator={false}
                 viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
-                // onScroll={onScroll}
                 extraData={extendedState}
                 onScrollBeginDrag={onScrollBeginDrag}
                 onMomentumScrollEnd={onMomentumScrollEnd}
                 decelerationRate={0.0}
                 disableIntervalMomentum
+                nestedScrollEnabled
             />
         </View>
     )

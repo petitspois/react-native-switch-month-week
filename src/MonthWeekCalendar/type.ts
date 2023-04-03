@@ -1,7 +1,14 @@
 import type { ITheme } from '../Constants/type';
+
+export interface MarkedDates {
+    [key: string]: {
+        marked: boolean;
+        markedColor: string;
+    }
+}
 export interface MonthWeekCalendarProps {
     calendarWidth?: number;
-    current?: string;
+    markedDates?: MarkedDates;
 }
 
 export type Mode = 'week' | 'month';

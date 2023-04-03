@@ -156,9 +156,15 @@ export function getMonthDates(date: string, firstDayOfWeek = 0, showSixWeeks = f
 		to.addDays((ldow + 7 - day) % 7);
 	}
 	const daysForSixWeeks = (daysBefore + days.length) / 6 >= 6;
+
 	if (showSixWeeks && !daysForSixWeeks) {
 		to.addDays(7);
+		if(daysBefore + days.length === 28){
+			to.addDays(7);
+		}
 	}
+
+
 	if (isLTE(from, days[0])) {
 		before = fromTo(from, days[0]);
 	}
