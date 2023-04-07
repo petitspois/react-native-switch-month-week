@@ -7,34 +7,43 @@ import moment from 'moment';
 
 
 const Example = () => {
+    const [theme, setTheme] = useState<any>()
     const [currentMonth, setCurrentMonth] = useState<string>(moment().startOf('month').format('YYYY-MM-DD'))
     const [markedDates, setMarkedDates] = useState({
-        '2023-04-02': {marked: true, markedColor: '#000'},
-        '2023-04-04': {marked: true, markedColor: '#000'},
+        '2023-04-02': { marked: true, markedColor: '#000' },
+        '2023-04-04': { marked: true, markedColor: '#000' },
     })
 
-    useEffect(()=>{
+    useEffect(() => {
         setTimeout(() => {
-            setMarkedDates(prev => ({...prev, '2023-04-05': {marked: true, markedColor: '#000'},}))
-        }, 4000);
-        setTimeout(() => {
-            setMarkedDates(prev => ({...prev, '2023-04-07': {marked: true, markedColor: '#000'},}))
-        }, 5000);
-        setTimeout(() => {
-            setMarkedDates(prev => ({...prev, '2023-04-09': {marked: true, markedColor: '#000'},}))
-        }, 6000);
+            setTheme(
+                { 
+                    containerBackgroundColor: '#040404',
+                    calendarBackgroundColor: '#191919',
+                    knobShadowColor: '#333333',
+                    selectedButtonBackgroundColor: '#333333',
+                    buttonTextColor: 'white',
+                    dayNameTextColor: 'white',
+                }
+            )
+        }, 3000);
+    
     }, [])
+    
 
     return (
-        <View style={{flex:1}}>
+        <View style={{ flex: 1 }}>
             <View style={{ backgroundColor: 'white' }}>
                 <Text style={{ padding: 12, fontSize: 18, fontWeight: 'bold', color: 'red' }}>{currentMonth.slice(0, -3)}</Text>
             </View>
-            <MonthWeekCalendarProvider onMonthChange={(date, type)=>{
-                setCurrentMonth(date)
-            }}>
-                <MonthWeekCalendar 
-                    markedDates={markedDates} 
+            <MonthWeekCalendarProvider
+
+                onMonthChange={(date, type) => {
+                    setCurrentMonth(date)
+                }}>
+                <MonthWeekCalendar
+                    theme={theme}
+                    markedDates={markedDates}
                 />
             </MonthWeekCalendarProvider>
         </View>

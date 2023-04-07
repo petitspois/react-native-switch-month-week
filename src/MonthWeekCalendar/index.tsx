@@ -1,41 +1,37 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity, ViewProps } from 'react-native';
-import XDate from 'xdate';
+import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity, ViewProps, ScrollView } from 'react-native';
 import CalendarContext from '../Context';
 import WeekDaysNames from './WeekDaysNames';
 import constants from '../Utils/constants';
 import { getMonthRows, getRowAboveTheWeek, generateDates, sameMonth } from '../Utils';
 import { MonthWeekCalendarProps, Mode } from './type'
-import { CalendarContextProps } from '../Context/type';
 import WeekCalendar from './WeekCalendar';
 import MonthCalendar from './MonthCalendar';
 import moment from 'moment';
-import { theme as themes, DATE_FORMAT } from '../Constants';
-import { UpdateSources } from '../Constants/type';
+import { styleConstructor } from '../Assets/style';
 
 const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const { calendarWidth, markedDates } = props;
+	const { calendarWidth, markedDates, theme } = props;
 	const context = useContext(CalendarContext)
 	const initDate = context.initDate;
+	const styles = useMemo(()=> styleConstructor(theme), [theme]);
 	//var
-	const defaultMode = 'week';
 	const containerWidth = calendarWidth || windowWidth;
 	const itemWidth = containerWidth / 7;
 	const itemHeight = containerWidth / 8;
+	const monthHeight = itemHeight * 6;
+	const monthHalfHeight = monthHeight/2;
 	//ref
-	const rowsRef = useRef(6 ?? getMonthRows(initDate));
 	const animatedContainerHeight = useRef(new Animated.Value(itemHeight));
 	const pressedHeightRef = useRef(itemHeight);
 	const monthPositionRef = useRef<number>((getRowAboveTheWeek(initDate)) * itemHeight)
-	const modeRef = useRef<'week' | 'month'>('week');
+	const modeRef = useRef<Mode>('week');
+	const reservationRef = useRef<View>(null);
 	//state
-	const [calendarPointer, setCalendarPointer] = useState<ViewProps['pointerEvents']>('auto')
-	const [currentDate, setCurrentDate] = useState(initDate)
 	const [monthDates, weekDates] = useMemo(() => generateDates(initDate), [initDate]);
-	const weekDatesMinMax = useMemo(() => [weekDates[0], weekDates[weekDates.length - 1]], [weekDates])
 	const monthDatesMinMax = useMemo(() => [monthDates[0], monthDates[monthDates.length - 1]], [monthDates])
 
 
@@ -47,14 +43,16 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		monthPositionRef.current = rows * itemHeight;
 	}
 
-
+	/**
+	 *  TODO: know area
+	 */
 	const knobRotateLeft = animatedContainerHeight.current.interpolate({
-		inputRange: [itemHeight, itemHeight * 6],
+		inputRange: [itemHeight, monthHeight],
 		outputRange: ['0deg', '-30deg']
 	})
 
 	const knobRotateRight = animatedContainerHeight.current.interpolate({
-		inputRange: [itemHeight, itemHeight * rowsRef.current],
+		inputRange: [itemHeight, monthHeight],
 		outputRange: ['0deg', '30deg']
 	})
 
@@ -76,19 +74,15 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		)
 	}
 
-
-	const isAValidMovement = (distanceX, distanceY) => {
-		return Math.abs(distanceY) > Math.abs(distanceX) && Math.abs(distanceY) > 36;
-	};
-
 	const openCalendar = (cb?: (mode: 'week' | 'month') => void) => {
 		Animated.timing(animatedContainerHeight.current, {
-			toValue: itemHeight * 6,
+			toValue: monthHeight,
 			duration: 100,
 			useNativeDriver: false,
 		}).start((finish) => {
 			if (finish) {
 				modeRef.current = 'month'
+				reservationRef.current?.setNativeProps({ pointerEvents: 'box-only'})
 				cb && cb('month')
 			}
 		})
@@ -102,66 +96,87 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		}).start((finish) => {
 			if (finish) {
 				modeRef.current = 'week'
+				reservationRef.current?.setNativeProps({ pointerEvents: 'box-none'})
 				cb && cb('week')
 			}
 		})
 	}
 
+	const openOrCloseCalendar = (dy: number) => {
+		if(ltHalf(dy)){
+			closeCalendar()
+		}else{
+			openCalendar()
+		}
+	}
+
+	const ltHalf = (dy: number) => {
+		return dy + pressedHeightRef.current < monthHalfHeight;
+	}
+
+	const _panResponderMove = (dy: number) => {
+		if (dy + pressedHeightRef.current < itemHeight) {
+			animatedContainerHeight.current.setValue(itemHeight)
+			return;
+		}
+		if (dy + pressedHeightRef.current > monthHeight) {
+			animatedContainerHeight.current.setValue(monthHeight)
+			return;
+		}
+		animatedContainerHeight.current.setValue(dy + pressedHeightRef.current)
+	}
+
+	/**
+	 *  TODO: month week area
+	 */
+	const isAValidMovement = (distanceX: number, distanceY: number) => {
+		return Math.abs(distanceY) > Math.abs(distanceX) && Math.abs(distanceY) > 36;
+	};
 	const panResponder = useRef(
 		PanResponder.create({
-			// 要求成为响应者：
 			onMoveShouldSetPanResponder: (evt, gestureState) => {
 				return isAValidMovement(gestureState.dx, gestureState.dy)
 			},
 			onPanResponderGrant: (evt, gestureState) => {
-				// 开始手势操作。给用户一些视觉反馈，让他们知道发生了什么事情！
-				// gestureState.{x,y} 现在会被设置为0
 				pressedHeightRef.current = animatedContainerHeight.current._value;
 			},
 			onPanResponderMove: (evt, gestureState) => {
-
-				if (gestureState.dy + pressedHeightRef.current < itemHeight) {
-					animatedContainerHeight.current.setValue(itemHeight)
-					return;
-				}
-
-				if (gestureState.dy + pressedHeightRef.current > itemHeight * rowsRef.current) {
-					animatedContainerHeight.current.setValue(itemHeight * rowsRef.current)
-					return;
-				}
-				animatedContainerHeight.current.setValue(gestureState.dy + pressedHeightRef.current)
+				_panResponderMove(gestureState.dy)
 			},
 			onPanResponderTerminationRequest: (evt, gestureState) => true,
 			onPanResponderRelease: (evt, gestureState) => {
-				if (gestureState.dy + pressedHeightRef.current < (itemHeight * rowsRef.current) / 2) {
-					closeCalendar();
-					return;
-				} else {
-					openCalendar();
-					return;
-				}
-				// 用户放开了所有的触摸点，且此时视图已经成为了响应者。
-				// 一般来说这意味着一个手势操作已经成功完成。
-			},
-			onPanResponderEnd: (evt, gestureState) => {
-				// 用户放开了所有的触摸点，且此时视图已经成为了响应者。
-				// 一般来说这意味着一个手势操作已经成功完成。
+				openOrCloseCalendar(gestureState.dy);
 			},
 			onPanResponderTerminate: (evt, gestureState) => {
-				if (gestureState.dy + pressedHeightRef.current < (itemHeight * rowsRef.current) / 2) {
-					closeCalendar();
-					return;
-				} else {
-					openCalendar();
-					return;
-				}
-				// 另一个组件已经成为了新的响应者，所以当前手势将被取消。
+				openOrCloseCalendar(gestureState.dy);
+			}
+		})
+	).current;
+
+	/**
+	 *  TODO: reservation area
+	 */
+	const isReservationAValidMovement = (distanceX: number, distanceY: number) => {
+		return Math.abs(distanceY) > Math.abs(distanceX) && Math.abs(distanceY) > 36 && modeRef.current === 'month';
+	};
+	const reservationPanResponder = useRef(
+		PanResponder.create({
+			onMoveShouldSetPanResponder: (evt, gestureState) => {
+				return isReservationAValidMovement(gestureState.dx, gestureState.dy)
 			},
-			onShouldBlockNativeResponder: (evt, gestureState) => {
-				// 返回一个布尔值，决定当前组件是否应该阻止原生组件成为JS响应者
-				// 默认返回true。目前暂时只支持android。
-				return true;
+			onPanResponderGrant: (evt, gestureState) => {
+				pressedHeightRef.current = animatedContainerHeight.current._value;
 			},
+			onPanResponderMove: (evt, gestureState) => {
+				_panResponderMove(gestureState.dy)
+			},
+			onPanResponderTerminationRequest: (evt, gestureState) => true,
+			onPanResponderRelease: (evt, gestureState) => {
+				openOrCloseCalendar(gestureState.dy)
+			},
+			onPanResponderTerminate: (evt, gestureState) => {
+				openOrCloseCalendar(gestureState.dy)
+			}
 		})
 	).current;
 
@@ -169,41 +184,41 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
 	// 月定位
 	const monthPositionY = animatedContainerHeight.current.interpolate({
-		inputRange: [itemHeight, itemHeight * 6],
+		inputRange: [itemHeight, monthHeight],
 		outputRange: [-monthPositionRef.current, 0]
 	})
 
 	const weekPositionY = animatedContainerHeight.current.interpolate({
-		inputRange: [itemHeight, itemHeight * 6],
+		inputRange: [itemHeight, monthHeight],
 		outputRange: [0, monthPositionRef.current]
 	})
 
 	const weekZIndex = animatedContainerHeight.current.interpolate({
-		inputRange: [itemHeight, itemHeight * 6],
+		inputRange: [itemHeight, monthHeight],
 		outputRange: [99, -99]
 	})
-
 
 	return (
 		<View style={[styles.containerWrapper]}>
 			<View style={[styles.weekNamesContainer]}>
-				<WeekDaysNames dayNames={constants.dayNamesShort} firstDay={0} />
+				<WeekDaysNames layout={{ containerWidth, itemWidth, itemHeight }} dayNames={constants.dayNamesShort} firstDay={0} />
 			</View>
-			<View {...panResponder.panHandlers} pointerEvents={calendarPointer}>
+			<View {...panResponder.panHandlers}>
 				<View>
-					<Animated.View style={[{ overflow: 'hidden', height: animatedContainerHeight.current, backgroundColor: 'white' }]}>
+					<Animated.View style={[{ overflow: 'hidden', height: animatedContainerHeight.current }]}>
 						<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
 							<MonthCalendar
 								initDate={initDate}
 								updateMonthPosition={updateMonthPosition}
 								layout={{ containerWidth, itemWidth, itemHeight }}
 								dataSource={monthDates}
-								themes={themes}
 								isEdge={isEdge}
 								markedDates={markedDates}
+								styles={styles}
 							/>
 						</Animated.View>
 					</Animated.View>
+					
 					<Animated.View
 						style={{
 							position: 'absolute',
@@ -219,13 +234,62 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 							updateMonthPosition={updateMonthPosition}
 							layout={{ containerWidth, itemWidth, itemHeight }}
 							dataSource={weekDates}
-							themes={themes}
 							markedDates={markedDates}
 							isEdge={isEdge}
+							styles={styles}
 						/>
 					</Animated.View>
 				</View>
 				{renderKnob()}
+			</View>
+			<View ref={reservationRef} style={[styles.reservationContainer]} {...reservationPanResponder.panHandlers} >
+				<ScrollView>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+					<Text>1232131</Text>
+				</ScrollView>
 			</View>
 		</View>
 	);
@@ -235,53 +299,4 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 export default MonthWeekCalendar;
 
 
-const styles = StyleSheet.create({
-	containerWrapper: {
-		backgroundColor: 'white'
-	},
-	containerWrapperShadow: {
-		shadowColor: '#ddd',
-		shadowOffset: { width: 1, height: 1 },
-		shadowOpacity: 0.4,
-		shadowRadius: 3,
-		elevation: 5,
-	},
-	weekNamesContainer: {
-		width: '100%',
-		height: 30,
-		flexDirection: 'row',
-	},
 
-	itemContainer: {
-		width: windowWidth / 7,
-		height: windowWidth / 7,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	itemText: {
-		fontSize: 14,
-		fontWeight: 'bold',
-	},
-	knobContainer: {
-		justifyContent: 'center',
-		alignItems: 'center',
-		width: '100%',
-		height: 24,
-		backgroundColor: 'white'
-	},
-	knobItem: {
-		position: 'relative',
-		flexDirection: 'row',
-		alignItems: 'center',
-		width: 40,
-		height: 24,
-	},
-	knob: {
-		position: 'absolute',
-		width: 18,
-		height: 4,
-		left: 4,
-		borderRadius: 4,
-		backgroundColor: '#ccc',
-	}
-})

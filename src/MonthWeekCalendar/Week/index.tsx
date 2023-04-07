@@ -1,10 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import XDate from 'xdate';
 import { getWeekDates } from '../../Utils';
 import Day from '../Day';
 import isEqual from 'lodash/isEqual';
-
 
 const areEqual = (prevProps, nextProps) => {
     return isEqual(prevProps, nextProps);
@@ -16,11 +14,11 @@ const Week = React.memo((props: any) => {
     const pageData = getWeekDates(date, 0, null) ?? []
     
     return (
-        <View style={[styles.page, { width: containerWidth}]}>
+        <View style={[otherProps.styles.weekContainer, { width: containerWidth}]}>
             {
                 pageData.map((value, index) => {
                     return (
-                        <Day key={index} style={{backgroundColor: 'white'}} date={value} {...otherProps} />
+                        <Day key={index} date={value} {...otherProps} />
                     )
                 })
             }

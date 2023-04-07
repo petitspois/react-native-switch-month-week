@@ -10,11 +10,12 @@ const { width: windowWith } = Dimensions.get('window')
 const WeekDaysNames = React.memo<WeekDaysNamesProps>(({
 	firstDay = 0,
 	dayNames = constants.dayNamesShort,
-	style = undefined
+	style = undefined,
+	layout = {}
 }): React.ReactElement[] | any => {
 	return dayNames.map((day, index) => {
 		return (
-			<View style={[styles.dayNamesItemContainer]} key={day}>
+			<View style={[styles.dayNamesItemContainer, { width: layout.itemWidth }]} key={day}>
 				<Text allowFontScaling={false} style={styles.dayNamesItem} numberOfLines={1} accessibilityLabel={''}>{day}</Text>
 			</View>
 		)

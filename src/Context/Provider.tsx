@@ -5,23 +5,17 @@ import { sameMonth } from '../Utils';
 import { useDidUpdate } from '../Hooks';
 import { DATE_FORMAT } from '../Constants'
 import { UpdateSources } from '../Constants/type';
-import styleConstructor from '../Assets/style';
 import CalendarContext from './index';
 import { CalendarContextProviderProps } from './type';
 import moment from 'moment';
 
 const CalendarProvider = (props: CalendarContextProviderProps) => {
-    const { theme, date = moment().format(DATE_FORMAT), onDateChanged, onMonthChange, style: propsStyle, children } = props;
-    const style = useRef(styleConstructor(theme));
-    const todayButton = useRef();
+    const { date = moment().format(DATE_FORMAT), onDateChanged, onMonthChange, children } = props;
     const prevDate = useRef(date);
     const currDate = useRef(date); // for setDate only to keep prevDate up to date
     const [currentDate, setCurrentDate] = useState(date);
     const [updateSource, setUpdateSource] = useState<UpdateSources>(UpdateSources.CALENDAR_INIT);
-    const wrapperStyle =  useMemo(()=> [{flex:1}], [style, propsStyle])
-    // const wrapperStyle = useMemo(() => {
-    //     return [style.current.contextWrapper, propsStyle];
-    // }, [style, propsStyle]);
+  
     useDidUpdate(() => {
         if (date) {
             _setDate(date, UpdateSources.PROP_UPDATE);
@@ -49,7 +43,7 @@ const CalendarProvider = (props: CalendarContextProviderProps) => {
     }, [currentDate, updateSource]);
 
     return (<CalendarContext.Provider value={contextValue}>
-      <View style={wrapperStyle}>{children}</View>
+      {children}
     </CalendarContext.Provider>);
 };
 export default CalendarProvider;

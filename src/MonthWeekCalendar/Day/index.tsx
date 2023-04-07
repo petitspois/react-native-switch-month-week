@@ -9,8 +9,9 @@ const areEqual = (prevProps, nextProps) => {
         (
             nextProps.current === nextProps.date.toString('yyyy-MM-dd') ||
             prevProps.current === nextProps.date.toString('yyyy-MM-dd') ||
-            !_.isEqual(prevProps.markedDates, nextProps.markedDates)
-        ) 
+            !_.isEqual(prevProps.markedDates, nextProps.markedDates) ||
+            !_.isEqual(prevProps.styles, nextProps.styles)
+        )
     ) {
         return false;
     }
@@ -18,7 +19,10 @@ const areEqual = (prevProps, nextProps) => {
 }
 
 const Day = React.memo((props: any) => {
-    const { onDayPress, current, date, style, disabled, layout, themes, isEdge, markedDates } = props;
+
+    const styles = useMemo(() => props.styles, [props.styles]);
+
+    const { onDayPress, current, date, disabled, layout, isEdge, markedDates } = props;
     const _onDayPress = useCallback(() => {
         if (current !== date.toString('yyyy-MM-dd')) {
             onDayPress(date.toString('yyyy-MM-dd'))
@@ -40,33 +44,34 @@ const Day = React.memo((props: any) => {
         const today = moment().format('YYYY-MM-DD');
         const dateStr = date.toString('yyyy-MM-dd');
         const edge = isEdge ? isEdge(dateStr).isEndEdge || isEdge(dateStr).isStartEdge : false;
-        return dateStr === current && (!disabled || edge) ? { backgroundColor: today === dateStr ? themes.todayTextColor : themes?.selectedDayBackgroundColor } : null;
-    }, [current, disabled])
+        return dateStr === current && (!disabled || edge) ?
+                    today == dateStr ? styles.selectedTodayButton : styles.selectedButton : undefined;
+    }, [current, disabled, styles])
 
     const dotSize = 4;
     const dotStyle = useMemo(() => {
-    console.log('markedDates123 :>> ', markedDates);
         const dateStr = date.toString('yyyy-MM-dd');
-        return !!markedDates?.[dateStr]?.marked ? { left: itemInnerStyle.width / 2 - dotSize / 2, width: dotSize, height: dotSize, borderRadius: 100, backgroundColor: themes.dotColor } : null;
-    }, [themes, markedDates])
+        return !!markedDates?.[dateStr]?.marked ? styles.dot : undefined;
+    }, [markedDates, styles])
 
     const textStyle = useMemo(() => {
         const today = moment().format('YYYY-MM-DD');
         const dateStr = date.toString('yyyy-MM-dd');
         return disabled ?
-            { color: themes.textDisabledColor } :
-            (today === dateStr && dateStr === current && !disabled) ? { color: 'white' } :
+            styles.disabledButtonText :
+            (today === dateStr && dateStr === current && !disabled) ? 
+                styles.selectedTodayButtonText :
                 today === dateStr ?
-                    { color: themes.todayTextColor } :
-                    null;
-    }, [current, disabled])
+                    styles.todayButtonText :
+                    styles.buttonText;
+    }, [current, disabled, styles])
 
     return (
         <TouchableOpacity activeOpacity={1} onPress={_onDayPress}>
-            <View style={[itemContainerStyle, styles.center, style]} >
+            <View style={[itemContainerStyle, styles.center]} >
                 <View style={[itemInnerStyle, styles.center, selectedDayStyle]}>
-                    <Text style={[styles.itemText, textStyle]}>{date.getDate()}</Text>
-                    <View style={[styles.dot, dotStyle]}></View>
+                    <Text style={[styles.dayText, textStyle]}>{date.getDate()}</Text>
+                    <View style={[dotStyle]}></View>
                 </View>
             </View>
         </TouchableOpacity>
@@ -74,22 +79,3 @@ const Day = React.memo((props: any) => {
 }, areEqual)
 
 export default Day
-
-const styles = StyleSheet.create({
-    center: {
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    itemText: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#111',
-    },
-    notThisMonthText: {
-        color: '#888'
-    },
-    dot: {
-        position: 'absolute',
-        bottom: 2,
-    }
-})

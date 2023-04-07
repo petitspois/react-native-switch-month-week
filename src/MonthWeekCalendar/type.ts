@@ -9,6 +9,7 @@ export interface MarkedDates {
 export interface MonthWeekCalendarProps {
     calendarWidth?: number;
     markedDates?: MarkedDates;
+    theme?: Partial<ITheme>
 }
 
 export type Mode = 'week' | 'month';

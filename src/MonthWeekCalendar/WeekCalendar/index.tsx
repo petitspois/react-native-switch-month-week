@@ -10,6 +10,7 @@ import { ITheme } from '../../Constants/type';
 import CalendarContext from '../../Context';
 import { ListRenderItemInfo, ViewToken } from '@shopify/flash-list';
 import type { MarkedDates } from '../type';
+import { ReturnStyles } from '../../Assets/style/types';
 
 
 interface WeekCalendarProps {
@@ -24,7 +25,8 @@ interface WeekCalendarProps {
 	updateMonthPosition: (rows: number) => void;
 	monthChanged?: (date: string) => void;
 	isEdge: (date: string) => { isStartEdge: boolean, isEndEdge: boolean }
-	themes: ITheme;
+	styles: ReturnStyles;
+
 }
 
 const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
@@ -70,7 +72,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 		return (
 			<Week key={index} markedDates={markedDates} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
 		)
-	}, [date, markedDates]);
+	}, [date, markedDates, otherProps?.styles]);
 
 
 	const onDayPress = (value: string) => {

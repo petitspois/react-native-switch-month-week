@@ -10,6 +10,7 @@ import { UpdateSources } from '../../Constants/type';
 import CalendarContext from '../../Context';
 import type { ListRenderItemInfo, ViewToken } from '@shopify/flash-list';
 import type { MarkedDates } from '../type';
+import { ReturnStyles } from '../../Assets/style/types';
 
 interface MonthCalendarProps {
 	initDate: string;
@@ -23,7 +24,7 @@ interface MonthCalendarProps {
 	updateMonthPosition: (rows: number) => void;
 	monthChanged?: (date: string) => void;
 	isEdge: (date: string) => { isStartEdge: boolean, isEndEdge: boolean }
-	themes: ITheme
+	styles: ReturnStyles;
 }
 
 const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
@@ -58,7 +59,7 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 		return (
 			<Month key={index} markedDates={markedDates} isEdge={isEdge} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
 		)
-	}, [date, markedDates]);
+	}, [date, markedDates, otherProps?.styles]);
 
 
 	useEffect(() => {
@@ -67,7 +68,6 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 		 *  1.根据周点击的日期，更新月的位置
 		 *  2.时间边缘不处理
 		 */
-		console.log('updateSource :>> ', updateSource);
 		if (
 			!sameMonth(prevDate, date) &&
 			(updateSource === UpdateSources.WEEK_SCROLL || updateSource === UpdateSources.WEEK_DAY_PRESS)
