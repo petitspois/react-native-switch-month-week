@@ -24,12 +24,13 @@ interface MonthCalendarProps {
 	updateMonthPosition: (rows: number) => void;
 	monthChanged?: (date: string) => void;
 	isEdge: (date: string) => { isStartEdge: boolean, isEndEdge: boolean }
+	disablePanChange: (disabled: boolean) => void;
 	styles: ReturnStyles;
 }
 
 const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 
-	const { isEdge, initDate, layout, updateMonthPosition, dataSource, markedDates, ...otherProps } = props;
+	const { isEdge, initDate, layout, updateMonthPosition, dataSource, markedDates, disablePanChange, ...otherProps } = props;
 	const context = useContext(CalendarContext)
 	const { date, prevDate, updateSource } = context;
 	const list = useRef<any>();
@@ -61,6 +62,13 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 		)
 	}, [date, markedDates, otherProps?.styles]);
 
+	const onScrollBeginDrag = () => {
+		disablePanChange(true);
+	}
+
+	const onMomentumScrollEnd = () => {
+		disablePanChange(false);
+	}
 
 	useEffect(() => {
 		/**
@@ -75,6 +83,7 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 			const pageIndex = dataSource.findIndex(item => sameMonth(item, date))
 			// TODO: 超过边界不需要处理
 			if (pageIndex !== -1) {
+				disablePanChange(true);
 				list.current?.scrollToIndex?.({ animated: true, index: pageIndex });
 			}
 		}
@@ -88,10 +97,12 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 				!sameMonth(prevDate, date) &&
 				!(isEdge(date).isEndEdge || isEdge(date).isStartEdge)
 			) {
+				disablePanChange(true);
 				const index = dataSource.findIndex(item => sameMonth(item, date))
 				list.current?.scrollToIndex?.({ animated: true, index });
 			}
 		}
+
 
 	}, [date, updateSource])
 
@@ -110,6 +121,10 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 			pageHeight={layout.itemHeight * 6}
 			pageWidth={layout.containerWidth}
 			onPageChange={onPageChange}
+			scrollViewProps={{
+				onScrollBeginDrag,
+				onMomentumScrollEnd,
+			}}
 		/>
 	)
 }

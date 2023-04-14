@@ -15,6 +15,9 @@ export interface ReturnStyles {
         height: number;
         flexDirection: 'row';
     },
+    weekNamesText: {
+        color: string;
+    }
     weekContainer: {
         flexDirection: 'row';
         flexWrap: 'wrap';

@@ -16,11 +16,8 @@ export interface ITheme{
 
 export enum UpdateSources {
     CALENDAR_INIT = "calendarInit",
-    TODAY_PRESS = "todayPress",
-    LIST_DRAG = "listDrag",
     WEEK_DAY_PRESS = "weekDayPress",
     MONTH_DAY_PRESS = "monthDayPress",
-    DIFFERENT_MONTH_DAY_PRESS = "differentMonthDayPress",
     MONTH_SCROLL = "monthScroll",
     WEEK_SCROLL = "weekScroll",
     PROP_UPDATE = "propUpdate"

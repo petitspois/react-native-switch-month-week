@@ -7,9 +7,11 @@ export interface MarkedDates {
     }
 }
 export interface MonthWeekCalendarProps {
+    locale: 'cn' | 'hk' | 'en';
     calendarWidth?: number;
     markedDates?: MarkedDates;
-    theme?: Partial<ITheme>
+    theme?: Partial<ITheme>;
+    defaultDate?: string;
 }
 
 export type Mode = 'week' | 'month';

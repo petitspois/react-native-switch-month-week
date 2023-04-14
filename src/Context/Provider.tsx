@@ -21,6 +21,7 @@ const CalendarProvider = (props: CalendarContextProviderProps) => {
             _setDate(date, UpdateSources.PROP_UPDATE);
         }
     }, [date]);
+
     const _setDate = useCallback((date: string, updateSource: UpdateSources) => {
         prevDate.current = currDate.current;
         currDate.current = date;
@@ -34,7 +35,6 @@ const CalendarProvider = (props: CalendarContextProviderProps) => {
 
     const contextValue = useMemo(() => {
         return {
-            initDate: date,
             date: currentDate,
             prevDate: prevDate.current,
             updateSource: updateSource,

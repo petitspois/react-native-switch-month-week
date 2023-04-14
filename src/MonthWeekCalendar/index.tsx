@@ -3,20 +3,22 @@ import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOp
 import CalendarContext from '../Context';
 import WeekDaysNames from './WeekDaysNames';
 import constants from '../Utils/constants';
-import { getMonthRows, getRowAboveTheWeek, generateDates, sameMonth } from '../Utils';
+import { getMonthRows, getRowAboveTheWeek, generateDates, generateWeekSections } from '../Utils';
 import { MonthWeekCalendarProps, Mode } from './type'
+import { DATE_FORMAT } from '../Constants';
 import WeekCalendar from './WeekCalendar';
 import MonthCalendar from './MonthCalendar';
 import moment from 'moment';
 import { styleConstructor } from '../Assets/style';
+import AgendaList from '../AgendaList';
 
 const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const { calendarWidth, markedDates, theme } = props;
+	const { calendarWidth, markedDates, theme, locale, defaultDate } = props;
 	const context = useContext(CalendarContext)
-	const initDate = context.initDate;
+	const initDate = defaultDate ?? moment().format(DATE_FORMAT);
 	const styles = useMemo(()=> styleConstructor(theme), [theme]);
 	//var
 	const containerWidth = calendarWidth || windowWidth;
@@ -30,10 +32,25 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const monthPositionRef = useRef<number>((getRowAboveTheWeek(initDate)) * itemHeight)
 	const modeRef = useRef<Mode>('week');
 	const reservationRef = useRef<View>(null);
+	const disablePan = useRef<boolean>(false);
 	//state
 	const [monthDates, weekDates] = useMemo(() => generateDates(initDate), [initDate]);
+	const weekSections = useMemo(() => generateWeekSections(weekDates, locale), [weekDates, locale]);
 	const monthDatesMinMax = useMemo(() => [monthDates[0], monthDates[monthDates.length - 1]], [monthDates])
 
+	const disablePanTimeRef = useRef<any>(null);
+	const handlerDisablePan = (disabled: boolean) => {
+		if(disablePan.current !== disabled) {
+			disablePanTimeRef.current && clearTimeout(disablePanTimeRef.current);
+			if(disabled){
+				disablePan.current = disabled;
+			}else{
+				disablePanTimeRef.current = setTimeout(() => {
+					disablePan.current = disabled;
+				}, 300);
+			}
+		}
+	}
 
 	const isEdge = (date: string) => {
 		return { isEndEdge: moment(date).isAfter(monthDatesMinMax[1], 'month'), isStartEdge: moment(date).isBefore(monthDatesMinMax[0], 'month') }
@@ -130,7 +147,8 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	 *  TODO: month week area
 	 */
 	const isAValidMovement = (distanceX: number, distanceY: number) => {
-		return Math.abs(distanceY) > Math.abs(distanceX) && Math.abs(distanceY) > 36;
+		console.log('disablePan.current :>> ', disablePan.current);
+		return Math.abs(distanceY)>5 && !disablePan.current;
 	};
 	const panResponder = useRef(
 		PanResponder.create({
@@ -198,10 +216,17 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		outputRange: [99, -99]
 	})
 
+	useEffect(() => {
+	  console.log('context.date :>> ', context.date);
+	}, [context.date])
+	
+
+	
+
 	return (
 		<View style={[styles.containerWrapper]}>
 			<View style={[styles.weekNamesContainer]}>
-				<WeekDaysNames layout={{ containerWidth, itemWidth, itemHeight }} dayNames={constants.dayNamesShort} firstDay={0} />
+				<WeekDaysNames locale={locale} styles={styles} layout={{ containerWidth, itemWidth, itemHeight }} dayNames={constants.dayNamesShort} firstDay={0} />
 			</View>
 			<View {...panResponder.panHandlers}>
 				<View>
@@ -210,6 +235,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 							<MonthCalendar
 								initDate={initDate}
 								updateMonthPosition={updateMonthPosition}
+								disablePanChange={handlerDisablePan}
 								layout={{ containerWidth, itemWidth, itemHeight }}
 								dataSource={monthDates}
 								isEdge={isEdge}
@@ -232,6 +258,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 						<WeekCalendar
 							initDate={initDate}
 							updateMonthPosition={updateMonthPosition}
+							disablePanChange={handlerDisablePan}
 							layout={{ containerWidth, itemWidth, itemHeight }}
 							dataSource={weekDates}
 							markedDates={markedDates}
@@ -243,53 +270,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 				{renderKnob()}
 			</View>
 			<View ref={reservationRef} style={[styles.reservationContainer]} {...reservationPanResponder.panHandlers} >
-				<ScrollView>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-					<Text>1232131</Text>
-				</ScrollView>
+				<AgendaList sections={weekSections} />
 			</View>
 		</View>
 	);

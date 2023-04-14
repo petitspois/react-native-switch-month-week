@@ -1,4 +1,5 @@
 import { StyleProp, TextStyle } from 'react-native';
+import { ReturnStyles } from '../../Assets/style/types';
 
 export interface WeekDaysNamesProps {
     firstDay?: number;
@@ -8,5 +9,6 @@ export interface WeekDaysNamesProps {
 		itemWidth: number;
 		itemHeight: number;
 	},
-    style?: StyleProp<TextStyle>;
+    locale: 'en' | 'cn' | 'hk';
+    styles?: ReturnStyles;
 }

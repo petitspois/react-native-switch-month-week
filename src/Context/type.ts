@@ -15,7 +15,6 @@ export interface CalendarContextProviderProps extends ViewProps {
 }
 
 export interface CalendarContextProps {
-    initDate: string;
     date: string;
     prevDate: string;
     updateSource: UpdateSources;

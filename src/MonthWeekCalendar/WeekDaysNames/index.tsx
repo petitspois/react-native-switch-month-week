@@ -1,22 +1,26 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { weekDayNames } from '../../Utils';
 import { WeekDaysNamesProps } from './type'
 import constants from '../../Utils/constants';
+import { DayNamesShort } from '../../Constants';
 
 const { width: windowWith } = Dimensions.get('window')
 
 
 const WeekDaysNames = React.memo<WeekDaysNamesProps>(({
 	firstDay = 0,
-	dayNames = constants.dayNamesShort,
-	style = undefined,
-	layout = {}
+	styles = undefined,
+	layout = {},
+	locale = 'en'
 }): React.ReactElement[] | any => {
+
+	const dayNames = useMemo(() => DayNamesShort[locale], [locale])
+
 	return dayNames.map((day, index) => {
 		return (
-			<View style={[styles.dayNamesItemContainer, { width: layout.itemWidth }]} key={day}>
-				<Text allowFontScaling={false} style={styles.dayNamesItem} numberOfLines={1} accessibilityLabel={''}>{day}</Text>
+			<View style={[style.dayNamesItemContainer, { width: layout.itemWidth }]} key={day}>
+				<Text allowFontScaling={false} style={[style.dayNamesItem, styles?.weekNamesText]} numberOfLines={1} accessibilityLabel={''}>{day}</Text>
 			</View>
 		)
 	})
@@ -24,7 +28,7 @@ const WeekDaysNames = React.memo<WeekDaysNamesProps>(({
 
 export default WeekDaysNames;
 
-const styles = StyleSheet.create({
+const style = StyleSheet.create({
 	dayNamesItemContainer: {
 		width: windowWith / 7,
 		height: 30,

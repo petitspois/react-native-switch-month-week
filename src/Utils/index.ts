@@ -11,6 +11,49 @@ function isValidXDate(date: Date) {
 
 
 
+export const formatDate = (date: string, locale: 'en' | 'cn' | 'hk') => {
+	const d = moment(date);
+	switch (locale) {
+		case 'en':
+			return {
+				'title': d.isSame(moment()) ?  d.format('MMMM') : `${d.format('MMMM')} ${d.format('YYYY')}`,
+				'subTitle': d.format('ddd'),
+			}
+		case 'cn':
+			return d.format('YYYY-MM-DD');
+		case 'hk':
+			return d.format('YYYY-MM-DD');
+		default:
+			return d.format('YYYY-MM-DD');
+	}
+}
+
+
+export const generateWeekSections = (weekArray: string[], locale: 'en' | 'cn' | 'hk') => {
+	let weekSections: any[] = weekArray.reduce((accumulator: any[], currentValue: string)=>{
+		if(accumulator.length){
+			return  []
+		}else{
+			return accumulator.concat({
+				title: currentValue,
+				data: JSON.stringify([{title: moment('2022-12-30').isSame(moment(), 'year')}]),
+			})
+		}
+	}, []);
+	console.log('weekArray :>> ', weekSections);
+	return [
+        {
+            title: "Main dishes",
+            data: ["Pizza", "Burger", "Risotto"]
+        },
+        {
+            title: "Sides",
+            data: ["French Fries", "Onion Rings", "Fried Shrimps"]
+        },
+    ];
+}
+
+
 
 export const generateDates = (date: string, numberOfPages: number = NUMBER_OF_PAGES) => {
 	const d = moment(date).subtract(numberOfPages, 'month').startOf('month');

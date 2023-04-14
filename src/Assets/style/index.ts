@@ -22,6 +22,9 @@ export const styleConstructor = (theme = {}) => {
             flexDirection: 'row',
             backgroundColor: appStyle.calendarBackgroundColor
         },
+        weekNamesText: {
+            color: appStyle.buttonTextColor,
+        },
         weekContainer: {
             flexDirection: 'row',
             flexWrap: 'wrap',

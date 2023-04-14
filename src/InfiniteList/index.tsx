@@ -3,8 +3,8 @@ import debounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollViewProps, View, Animated, FlatListProps } from 'react-native';
-import { DataProvider, LayoutProvider, RecyclerListView, RecyclerListViewProps } from 'recyclerlistview';
+import { ScrollViewProps, View, Animated, FlatListProps, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { DataProvider, LayoutProvider, RecyclerListView, RecyclerListViewProps,  } from 'recyclerlistview';
 import { FlashList, FlashListProps, ViewToken } from "@shopify/flash-list";
 import constants from '../Utils/constants';
 import { useCombinedRefs } from '../Hooks';
@@ -127,9 +127,12 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
         [scrollViewProps?.onMomentumScrollEnd, onReachEdge, onReachNearEdge, reloadPagesDebounce]
     );
 
-    const onScrollBeginDrag = useCallback(() => {
+    const onScrollBeginDrag = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
         scrolledByUser.current = true;
-    }, []);
+        scrollViewProps?.onScrollBeginDrag?.(event)
+    }, [scrollViewProps?.onScrollBeginDrag]);
+
+
 
 
     const style = useMemo(() => {

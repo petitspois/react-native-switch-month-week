@@ -25,13 +25,14 @@ interface WeekCalendarProps {
 	updateMonthPosition: (rows: number) => void;
 	monthChanged?: (date: string) => void;
 	isEdge: (date: string) => { isStartEdge: boolean, isEndEdge: boolean }
+	disablePanChange: (disabled: boolean) => void;
 	styles: ReturnStyles;
 
 }
 
 const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 
-	const { initDate, layout, updateMonthPosition, dataSource, isEdge, markedDates, ...otherProps } = props;
+	const { initDate, layout, updateMonthPosition, dataSource, isEdge, markedDates, disablePanChange, ...otherProps } = props;
 	const context = useContext(CalendarContext)
 	const { date, prevDate, updateSource } = context;
 	const initialIndex = useMemo(() => dataSource.findIndex(item => sameWeek(item, initDate)), [])
@@ -42,6 +43,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 	const extraWeekData = {
 		date: context.date,
 	}
+
 
 
 	const onPageChange = useCallback((page: ViewToken, prevPage: ViewToken, { scrolledByUser }: any) => {
@@ -88,6 +90,14 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 		context?.setDate(value, UpdateSources.WEEK_DAY_PRESS)
 	}
 
+	const onScrollBeginDrag = () => {
+		disablePanChange(true);
+	}
+
+	const onMomentumScrollEnd = () => {
+		disablePanChange(false);
+	}
+
 
 	useEffect(() => {
 		// TODO: 根据月点击的日期，更新周的位置
@@ -95,10 +105,12 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 			!sameWeek(prevDate, date) &&
 			(updateSource === UpdateSources.MONTH_SCROLL || updateSource === UpdateSources.MONTH_DAY_PRESS)
 		) {
+			disablePanChange(true);
 			const index = dataSource.findIndex(item => sameWeek(item, date));
 			list.current?.scrollToIndex?.({animated:true, index});
 		}
 	}, [date, updateSource])
+
 
 
 	return (
@@ -114,6 +126,10 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 			pageHeight={layout.itemHeight}
 			pageWidth={layout.containerWidth}
 			onPageChange={onPageChange}
+			scrollViewProps={{
+				onScrollBeginDrag,
+				onMomentumScrollEnd,
+			}}
 			/>
 	)
 }
