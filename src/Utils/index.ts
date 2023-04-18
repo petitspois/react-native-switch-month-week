@@ -1,6 +1,8 @@
 import XDate from 'xdate'
 import moment from 'moment';
-import { DATE_FORMAT, NUMBER_OF_PAGES } from '../Constants';
+import { DATE_FORMAT, NUMBER_OF_PAGES, dayNamesFormatCN, dayNamesFormatHK, dayNamesFormatTW } from '../Constants';
+import type { Locale } from '../Constants/type';
+import type { MarkedDates } from '../MonthWeekCalendar/type';
 import _ from 'lodash';
 
 const latinNumbersPattern = /[0-9]/g;
@@ -10,47 +12,83 @@ function isValidXDate(date: Date) {
 }
 
 
-
-export const formatDate = (date: string, locale: 'en' | 'cn' | 'hk') => {
+export const getYearMonthLocale = (date: string, locale: Locale) => {
 	const d = moment(date);
 	switch (locale) {
 		case 'en':
-			return {
-				'title': d.isSame(moment()) ?  d.format('MMMM') : `${d.format('MMMM')} ${d.format('YYYY')}`,
-				'subTitle': d.format('ddd'),
-			}
+			return  d.isSame(moment(), 'year') ?  d.format('MMMM') : `${d.format('MMMM')} ${d.format('YYYY')}`;
 		case 'cn':
-			return d.format('YYYY-MM-DD');
+			return d.isSame(moment(), 'year') ?  d.format('M')+ '月' : d.format('yyyy年MM日');
 		case 'hk':
-			return d.format('YYYY-MM-DD');
+			return d.isSame(moment(), 'year') ?  d.format('M')+ '月' : d.format('yyyy年MM日');
+		case 'tw':
+			return d.isSame(moment(), 'year') ?  d.format('M')+ '月' : d.format('yyyy年MM日');
 		default:
-			return d.format('YYYY-MM-DD');
+			return '';
 	}
 }
 
+export const getRangeWeekLocale = (date: string, locale: Locale) => {
+	const d = moment(date);
+	const endWeek = moment(date).add(6, 'day');
+	switch (locale) {
+		case 'en':
+			return `Week ${d.week()}, ${d.format('MMM D')} - ${endWeek.format('MMM D')}`;
+		case 'cn':
+			return `第 ${d.week()} 周, ${d.format('M 月 D 日')} - ${endWeek.format('M 月 D 日')}`;
+		case 'hk':
+			return `第 ${d.week()} 週, ${d.format('M 月 D 日')} - ${endWeek.format('M 月 D 日')}`;
+		case 'tw':
+			return `第 ${d.week()} 週, ${d.format('M 月 D 日')} - ${endWeek.format('M 月 D 日')}`;
+		default:
+			return '';
+	}
+}
 
-export const generateWeekSections = (weekArray: string[], locale: 'en' | 'cn' | 'hk') => {
+export const getWeekLocale = (date: string, locale: Locale) => {
+	const d = moment(date);
+	switch (locale) {
+		case 'en':
+			return d.format('ddd');
+		case 'cn':
+			return dayNamesFormatCN[d.day()];
+		case 'hk':
+			return dayNamesFormatHK[d.day()];
+		case 'tw':
+			return dayNamesFormatTW[d.day()];
+		default:
+			return '';
+	}
+};
+
+export const getSameWeekForMarkedDates = (markedDates: MarkedDates, date: string, locale: Locale) => {
+	const markedDatesKeys = Object.keys(markedDates);
+	const sameWeekMarkedDates = markedDatesKeys.filter((key)=>{
+		return moment(key).isSame(date, 'week')
+	})
+	return sameWeekMarkedDates.map(item=> ({...markedDates[item], data: {...markedDates[item].data, date: item, week: getWeekLocale(item, locale), day: moment(item).date()}}));
+}
+
+
+
+export const generateWeekSections = (weekArray: string[],  locale: Locale, markedDates?: MarkedDates,) => {
 	let weekSections: any[] = weekArray.reduce((accumulator: any[], currentValue: string)=>{
 		if(accumulator.length){
-			return  []
-		}else{
+			const sameYear = moment(currentValue).isSame(accumulator[accumulator.length - 1].date, 'month');
 			return accumulator.concat({
-				title: currentValue,
-				data: JSON.stringify([{title: moment('2022-12-30').isSame(moment(), 'year')}]),
+				title: sameYear ? undefined : getYearMonthLocale(currentValue, locale),
+				date: currentValue,
+				data: [{text: getRangeWeekLocale(currentValue, locale), data: getSameWeekForMarkedDates(markedDates || {}, currentValue, locale)}]
 			})
+		}else{
+			return  [{
+				title: getYearMonthLocale(currentValue, locale),
+				date: currentValue,
+				data: [{text: getRangeWeekLocale(currentValue, locale), data: getSameWeekForMarkedDates(markedDates || {}, currentValue, locale)}]
+			}]
 		}
 	}, []);
-	console.log('weekArray :>> ', weekSections);
-	return [
-        {
-            title: "Main dishes",
-            data: ["Pizza", "Burger", "Risotto"]
-        },
-        {
-            title: "Sides",
-            data: ["French Fries", "Onion Rings", "Fried Shrimps"]
-        },
-    ];
+	return weekSections;
 }
 
 

@@ -12,7 +12,7 @@ const WeekDaysNames = React.memo<WeekDaysNamesProps>(({
 	firstDay = 0,
 	styles = undefined,
 	layout = {},
-	locale = 'en'
+	locale = 'en',
 }): React.ReactElement[] | any => {
 
 	const dayNames = useMemo(() => DayNamesShort[locale], [locale])

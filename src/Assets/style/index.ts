@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import * as defaultStyle from './style';
 import { ReturnStyles } from './types';
 
@@ -9,12 +9,23 @@ export const styleConstructor = (theme = {}) => {
             flex: 1,
             backgroundColor: appStyle.containerBackgroundColor
         },
+        calendar: {
+        },
         containerWrapperShadow: {
+            position: 'absolute',
+            bottom: 4,
+            left:0,
+            width: '100%',
+            height: 20,
+            zIndex: 99,
+            backgroundColor: 'transparent',
             shadowColor: appStyle.knobShadowColor,
-            shadowOffset: { width: 1, height: 1 },
-            shadowOpacity: 0.4,
-            shadowRadius: 3,
-            elevation: 5,
+            shadowOpacity: 0.25,
+            shadowRadius: 10,
+            shadowOffset: { height: 4, width: 0 },
+            elevation: 3
+            // borderBottomColor: appStyle.knobShadowColor,
+            // borderBottomWidth: StyleSheet.hairlineWidth,
         },
         weekNamesContainer: {
             width: '100%',
@@ -39,6 +50,8 @@ export const styleConstructor = (theme = {}) => {
             flex: 1,
         },
         knobContainer: {
+            position: 'relative',
+            zIndex: 999,
             justifyContent: 'center',
             alignItems: 'center',
             width: '100%',
@@ -96,6 +109,65 @@ export const styleConstructor = (theme = {}) => {
         selectedTodayButtonText: {
             color: 'white',
         },
-
+        agendaContainer: {
+            backgroundColor: appStyle.containerBackgroundColor
+        },
+        agendaHeaderContainer: {
+            paddingHorizontal: 18,
+            paddingVertical: 12,
+            flexDirection: 'row',
+        },
+        agendaHeaderText: {
+            color: appStyle.buttonTextColor,
+            fontWeight: 'bold',
+            fontSize: 24,
+        },
+        agendaItemContainer: {
+            paddingHorizontal: 18,
+        },
+        agendaItemTitle: {
+            marginVertical: 12,
+            marginLeft: 52,
+            color: appStyle.disabledButtonTextColor,
+        },
+        agendaItem: {
+        },
+        agendaItemInner: {
+            flex: 1,
+            flexDirection: 'row',
+            marginVertical: 12,
+            height: 50,
+        },
+        agendaItemSubtitle: {
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: 40,
+        },
+        agendaItemSubtitleWeek: {
+            color: appStyle.buttonTextColor,
+            fontSize: 16,
+        },
+        agendaItemSubtitleDay: {
+            color: appStyle.buttonTextColor,
+            fontSize: 26,
+            fontWeight: 'bold'
+        },
+        agendaItemDetail: {
+            flex: 1,
+            paddingHorizontal: 6,
+            paddingVertical: 4,
+            marginLeft: 12,
+            borderRadius: 4,
+            borderLeftWidth: 4,
+            borderLeftColor: appStyle.agendaItemTextColor,
+            backgroundColor: appStyle.agendaItemBackgroundColor,
+        },
+        agendaItemDetailTitle: {
+            color: appStyle.agendaItemTextColor,
+        },
+        agendaItemDetailDescription: {
+            marginTop: 4,
+            color: appStyle.agendaItemTextColor,
+        }
     })
 };

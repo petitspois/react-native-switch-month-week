@@ -3,6 +3,9 @@ export interface ReturnStyles {
         flex: number;
         backgroundColor: string;
     },
+    calendar: {
+
+    },
     containerWrapperShadow: {
         shadowColor: string;
         shadowOffset: { width: number, height: number };
@@ -89,5 +92,55 @@ export interface ReturnStyles {
     selectedTodayButtonText: {
         color: string;
     },
-
+    agendaContainer: {
+        backgroundColor: string;
+    },
+    agendaHeaderContainer: {
+        flexDirection: 'row';
+        paddingHorizontal: number;
+    },
+    agendaHeaderText: {
+        color: string;
+        fontWeight: 'bold';
+        fontSize: number;
+    },
+    agendaItemContainer: {
+        backgroundColor: string;
+    },
+    agendaItemTitle: {
+        color: string;
+    },
+    agendaItem: {
+        flexDirection: 'row';
+    },
+    agendaItemInner: {
+        flexDirection: 'row';
+    },
+    agendaItemSubtitle: {
+        alignItems: 'center';
+        width: 40,
+    },
+    agendaItemSubtitleWeek: {
+        color: string;
+        fontSize: 16;
+    },
+    agendaItemSubtitleDay: {
+        color: string;
+        fontSize: 26;
+        fontWeight: 'bold';
+    },
+    agendaItemDetail: {
+        paddingHorizontal: 6;
+        paddingVertical: 4;
+        marginLeft: 12;
+        borderRadius: 4;
+        backgroundColor: string;
+    },
+    agendaItemDetailTitle: {
+        color: string;
+    },
+    agendaItemDetailDescription: {
+        marginTop: 4;
+        color: string;
+    }
 }

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOp
 import CalendarContext from '../Context';
 import WeekDaysNames from './WeekDaysNames';
 import constants from '../Utils/constants';
-import { getMonthRows, getRowAboveTheWeek, generateDates, generateWeekSections } from '../Utils';
+import { getMonthRows, getRowAboveTheWeek, generateDates, generateWeekSections, sameWeek } from '../Utils';
 import { MonthWeekCalendarProps, Mode } from './type'
 import { DATE_FORMAT } from '../Constants';
 import WeekCalendar from './WeekCalendar';
@@ -20,6 +20,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const context = useContext(CalendarContext)
 	const initDate = defaultDate ?? moment().format(DATE_FORMAT);
 	const styles = useMemo(()=> styleConstructor(theme), [theme]);
+	console.log('initDate :>> ', initDate);
 	//var
 	const containerWidth = calendarWidth || windowWidth;
 	const itemWidth = containerWidth / 7;
@@ -27,6 +28,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const monthHeight = itemHeight * 6;
 	const monthHalfHeight = monthHeight/2;
 	//ref
+	const AgendaRef = useRef<any>()
 	const animatedContainerHeight = useRef(new Animated.Value(itemHeight));
 	const pressedHeightRef = useRef(itemHeight);
 	const monthPositionRef = useRef<number>((getRowAboveTheWeek(initDate)) * itemHeight)
@@ -35,7 +37,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const disablePan = useRef<boolean>(false);
 	//state
 	const [monthDates, weekDates] = useMemo(() => generateDates(initDate), [initDate]);
-	const weekSections = useMemo(() => generateWeekSections(weekDates, locale), [weekDates, locale]);
+	const weekSections = useMemo(() => generateWeekSections(weekDates, locale, markedDates), [markedDates, weekDates, locale]);
 	const monthDatesMinMax = useMemo(() => [monthDates[0], monthDates[monthDates.length - 1]], [monthDates])
 
 	const disablePanTimeRef = useRef<any>(null);
@@ -80,7 +82,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	// render
 	const renderKnob = () => {
 		return (
-			<View style={[styles.knobContainer, styles.containerWrapperShadow]}>
+			<View style={[styles.knobContainer]}>
 				<TouchableOpacity onPress={knobClick} activeOpacity={1}>
 					<View style={styles.knobItem} >
 						<Animated.View style={[styles.knob, { transform: [{ rotate: knobRotateLeft }] }]} />
@@ -216,19 +218,14 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		outputRange: [99, -99]
 	})
 
-	useEffect(() => {
-	  console.log('context.date :>> ', context.date);
-	}, [context.date])
 	
-
-	
-
+	console.log('weekSections :>> ', weekSections);
 	return (
 		<View style={[styles.containerWrapper]}>
 			<View style={[styles.weekNamesContainer]}>
 				<WeekDaysNames locale={locale} styles={styles} layout={{ containerWidth, itemWidth, itemHeight }} dayNames={constants.dayNamesShort} firstDay={0} />
 			</View>
-			<View {...panResponder.panHandlers}>
+			<View {...panResponder.panHandlers} style={[styles.calendar]}>
 				<View>
 					<Animated.View style={[{ overflow: 'hidden', height: animatedContainerHeight.current }]}>
 						<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
@@ -244,7 +241,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 							/>
 						</Animated.View>
 					</Animated.View>
-					
 					<Animated.View
 						style={{
 							position: 'absolute',
@@ -268,9 +264,14 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 					</Animated.View>
 				</View>
 				{renderKnob()}
+				<View style={{height: 4}}>
+					<View style={[styles.containerWrapperShadow]}>
+					
+					</View>
+				</View>
 			</View>
 			<View ref={reservationRef} style={[styles.reservationContainer]} {...reservationPanResponder.panHandlers} >
-				<AgendaList sections={weekSections} />
+				{/* <AgendaList styles={styles} sections={weekSections} /> */}
 			</View>
 		</View>
 	);

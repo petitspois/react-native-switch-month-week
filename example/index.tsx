@@ -11,24 +11,25 @@ const Example = () => {
     const [date, setDate] = useState('2023-04-13')
     const [currentMonth, setCurrentMonth] = useState<string>(moment().startOf('month').format('YYYY-MM-DD'))
     const [markedDates, setMarkedDates] = useState({
-        '2023-04-02': { marked: true, markedColor: '#000' },
-        '2023-04-04': { marked: true, markedColor: '#000' },
+        '2013-03-31': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室'} },
+        '2013-04-01': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室'} },
+        '2013-04-07': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室'} },
+        '2013-04-08': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室'} },
     })
 
     useEffect(() => {
-        setTimeout(() => {
-            // setTheme(
-            //     { 
-            //         containerBackgroundColor: '#040404',
-            //         calendarBackgroundColor: '#191919',
-            //         knobShadowColor: '#333333',
-            //         selectedButtonBackgroundColor: '#333333',
-            //         buttonTextColor: 'white',
-            //         dayNameTextColor: 'white',
-            //     }
-            // )
-            setDate('2023-04-16')
-        }, 4000);
+        // setTimeout(() => {
+        //     setTheme(
+        //         { 
+        //             containerBackgroundColor: '#040404',
+        //             calendarBackgroundColor: '#191919',
+        //             knobShadowColor: '#333333',
+        //             selectedButtonBackgroundColor: '#333333',
+        //             buttonTextColor: 'white',
+        //             dayNameTextColor: 'white',
+        //         }
+        //     )
+        // }, 4000);
     
     }, [])
     
@@ -39,12 +40,11 @@ const Example = () => {
                 <Text style={{ padding: 12, fontSize: 18, fontWeight: 'bold', color: 'red' }}>{currentMonth.slice(0, -3)}</Text>
             </View>
             <MonthWeekCalendarProvider
-                date={date}
                 onMonthChange={(date, type) => {
                     setCurrentMonth(date)
                 }}>
                 <MonthWeekCalendar
-                    locale={'en'}
+                    locale={'tw'}
                     theme={theme}
                     markedDates={markedDates}
                 />
