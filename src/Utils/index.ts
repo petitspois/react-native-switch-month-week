@@ -16,13 +16,13 @@ export const getYearMonthLocale = (date: string, locale: Locale) => {
 	const d = moment(date);
 	switch (locale) {
 		case 'en':
-			return  d.isSame(moment(), 'year') ?  d.format('MMMM') : `${d.format('MMMM')} ${d.format('YYYY')}`;
+			return d.isSame(moment(), 'year') ? d.format('MMMM') : `${d.format('MMMM')} ${d.format('YYYY')}`;
 		case 'cn':
-			return d.isSame(moment(), 'year') ?  d.format('M')+ '月' : d.format('yyyy年MM日');
+			return d.isSame(moment(), 'year') ? d.format('M') + '月' : d.format('yyyy年MM日');
 		case 'hk':
-			return d.isSame(moment(), 'year') ?  d.format('M')+ '月' : d.format('yyyy年MM日');
+			return d.isSame(moment(), 'year') ? d.format('M') + '月' : d.format('yyyy年MM日');
 		case 'tw':
-			return d.isSame(moment(), 'year') ?  d.format('M')+ '月' : d.format('yyyy年MM日');
+			return d.isSame(moment(), 'year') ? d.format('M') + '月' : d.format('yyyy年MM日');
 		default:
 			return '';
 	}
@@ -63,30 +63,28 @@ export const getWeekLocale = (date: string, locale: Locale) => {
 
 export const getSameWeekForMarkedDates = (markedDates: MarkedDates, date: string, locale: Locale) => {
 	const markedDatesKeys = Object.keys(markedDates);
-	const sameWeekMarkedDates = markedDatesKeys.filter((key)=>{
+	const sameWeekMarkedDates = markedDatesKeys.filter((key) => {
 		return moment(key).isSame(date, 'week')
 	})
-	return sameWeekMarkedDates.map(item=> ({...markedDates[item], data: {...markedDates[item].data, date: item, week: getWeekLocale(item, locale), day: moment(item).date()}}));
+	return sameWeekMarkedDates.map(item => ({ ...markedDates[item], date: item, week: getWeekLocale(item, locale), day: moment(item).date() }));
 }
 
 
 
-export const generateWeekSections = (weekArray: string[],  locale: Locale, markedDates?: MarkedDates,) => {
-	let weekSections: any[] = weekArray.reduce((accumulator: any[], currentValue: string)=>{
-		if(accumulator.length){
-			const sameYear = moment(currentValue).isSame(accumulator[accumulator.length - 1].date, 'month');
-			return accumulator.concat({
-				title: sameYear ? undefined : getYearMonthLocale(currentValue, locale),
-				date: currentValue,
-				data: [{text: getRangeWeekLocale(currentValue, locale), data: getSameWeekForMarkedDates(markedDates || {}, currentValue, locale)}]
-			})
-		}else{
-			return  [{
-				title: getYearMonthLocale(currentValue, locale),
-				date: currentValue,
-				data: [{text: getRangeWeekLocale(currentValue, locale), data: getSameWeekForMarkedDates(markedDates || {}, currentValue, locale)}]
-			}]
+export const generateWeekSections = (weekArray: string[], locale: Locale, markedDates?: MarkedDates,) => {
+	let weekSections: any[] = weekArray.reduce((accumulator: any[], currentValue: string, currentIndex: number, origin: string[]) => {
+		let sections: any = accumulator;
+		const isSameMonth = currentIndex ? moment(currentValue).isSame(origin[currentIndex - 1], 'month') : false;
+		if(!isSameMonth){
+			sections.push({ key: 'month_' + currentIndex, type: 'month', value: getYearMonthLocale(currentValue, locale) })
 		}
+		sections.push(
+			{ key: 'week_' + currentIndex, type: 'week', value: getRangeWeekLocale(currentValue, locale) }
+		)
+		getSameWeekForMarkedDates(markedDates || {}, currentValue, locale).forEach((item, idx) => {
+			sections.push({ ...item, key: `day_${currentIndex}_${idx}`, type: 'day' })
+		})
+		return sections;
 	}, []);
 	return weekSections;
 }
@@ -105,7 +103,7 @@ export const generateDates = (date: string, numberOfPages: number = NUMBER_OF_PA
 	const week = moment(array[0]).day();
 	const startWeek: any = moment(array[0]).subtract(week, 'day')
 	const endWeek: any = moment(array[array.length - 1])
-	const weekLength = endWeek.diff(startWeek, 'week')+6;
+	const weekLength = endWeek.diff(startWeek, 'week') + 6;
 	for (let index = 0; index < weekLength; index++) {
 		if (!index) {
 			weekArray.push(startWeek.format('YYYY-MM-DD'))
@@ -240,7 +238,7 @@ export function getMonthDates(date: string, firstDayOfWeek = 0, showSixWeeks = f
 
 	if (showSixWeeks && !daysForSixWeeks) {
 		to.addDays(7);
-		if(daysBefore + days.length === 28){
+		if (daysBefore + days.length === 28) {
 			to.addDays(7);
 		}
 	}

@@ -93,6 +93,7 @@ export interface ReturnStyles {
         color: string;
     },
     agendaContainer: {
+        flex:1,
         backgroundColor: string;
     },
     agendaHeaderContainer: {

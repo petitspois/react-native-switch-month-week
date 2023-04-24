@@ -48,6 +48,7 @@ export const styleConstructor = (theme = {}) => {
         },
         reservationContainer: {
             flex: 1,
+            backgroundColor: appStyle.reservationBackgroundColor
         },
         knobContainer: {
             position: 'relative',
@@ -110,10 +111,11 @@ export const styleConstructor = (theme = {}) => {
             color: 'white',
         },
         agendaContainer: {
+            flex:1,
             backgroundColor: appStyle.containerBackgroundColor
         },
         agendaHeaderContainer: {
-            paddingHorizontal: 18,
+            // paddingHorizontal: 18,
             paddingVertical: 12,
             flexDirection: 'row',
         },
@@ -124,6 +126,7 @@ export const styleConstructor = (theme = {}) => {
         },
         agendaItemContainer: {
             paddingHorizontal: 18,
+            backgroundColor: appStyle.reservationBackgroundColor
         },
         agendaItemTitle: {
             marginVertical: 12,

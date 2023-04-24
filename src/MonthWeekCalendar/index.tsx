@@ -219,7 +219,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	})
 
 	
-	console.log('weekSections :>> ', weekSections);
 	return (
 		<View style={[styles.containerWrapper]}>
 			<View style={[styles.weekNamesContainer]}>
@@ -265,13 +264,11 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 				</View>
 				{renderKnob()}
 				<View style={{height: 4}}>
-					<View style={[styles.containerWrapperShadow]}>
-					
-					</View>
+					<View style={[styles.containerWrapperShadow]}></View>
 				</View>
 			</View>
 			<View ref={reservationRef} style={[styles.reservationContainer]} {...reservationPanResponder.panHandlers} >
-				{/* <AgendaList styles={styles} sections={weekSections} /> */}
+				{!!weekSections.length && <AgendaList styles={styles} dataSource={weekSections} />}
 			</View>
 		</View>
 	);

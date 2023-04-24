@@ -2,6 +2,7 @@
 
 export const containerBackgroundColor = '#ffffff';
 export const calendarBackgroundColor = '#ffffff';
+export const reservationBackgroundColor = '#ffffff';
 export const todayTextColor = '#3370ff';
 export const selectedTodayButtonBackgroundColor = '#3370ff';
 export const selectedButtonBackgroundColor = '#bbbbbb';

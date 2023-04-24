@@ -4,55 +4,64 @@ import { getYearMonthLocale, sameWeek } from '../Utils';
 import { ReturnStyles } from '../Assets/style/types';
 import { debounce } from 'lodash';
 import CalendarContext from '../Context';
+import { FlashList, FlashListProps, ViewToken } from "@shopify/flash-list";
+
 export interface AgendaListProps {
-    sections: SectionListProps<any>['sections'];
+    dataSource: AgendaListDataSource[];
     styles: ReturnStyles;
 }
 
+export interface AgendaListDataSource {
+    data?: {
+        title: string;
+        description: string;
+    },
+    date: string;
+    day?: number;
+    key: string;
+    marked?: boolean;
+    markedColor?: string;
+    type: 'month' | 'week' | 'day';
+    week?: string;
+    value: string;
+}
+
 const AgendaList: React.FC<AgendaListProps> = (props) => {
-    const { sections, styles } = props;
+    const { dataSource, styles } = props;
     const listRef = useRef<any>()
     const context = useContext(CalendarContext)
-	const { date } = context;
+    const { date } = context;
 
-    useEffect(() => {
-          setTimeout(() => {
-            scrollToSection(date);
-          }, 500);
-      }, []);
 
-    const Item = (item: any) => {
+
+    const _renderSectionHeader = (item: AgendaListDataSource) => {
         return (
-            <View style={styles.agendaItemContainer}>
-                <Text style={styles.agendaItemTitle}>{item.title.text}</Text>
-                <View style={styles.agendaItem}>
-                    {
-                        item.title.data.map((value: any) => {
-                            return (
-                                <View style={styles.agendaItemInner}>
-                                    <View style={styles.agendaItemSubtitle}>
-                                        <Text style={styles.agendaItemSubtitleWeek}>{value.data.week}</Text>
-                                        <Text style={styles.agendaItemSubtitleDay}>{value.data.day}</Text>
-                                    </View>
-                                    <View style={styles.agendaItemDetail}>
-                                        <Text style={styles.agendaItemDetailTitle}>{value.data.title}</Text>
-                                        <Text style={styles.agendaItemDetailDescription}>{value.data.description}</Text>
-                                    </View>
-                                </View>
-                            )
-                        })
-                    }
-                </View>
+            <View style={styles.agendaHeaderContainer}>
+                <Text style={styles.agendaHeaderText}>{item.value}</Text>
             </View>
         )
-    };
+    }
 
-
-    const _renderSectionHeader: SectionListProps<any>['renderSectionHeader'] = ({ section: { title } }) => {
+    const _renderWeek = (item: AgendaListDataSource) => {
         return (
-            !!title ? <View style={styles.agendaHeaderContainer}>
-                <Text style={styles.agendaHeaderText}>{title}</Text>
-            </View> : null
+            <Text style={styles.agendaItemTitle}>{item.value}</Text>
+        )
+    }
+
+    const _renderDay = (item: AgendaListDataSource) => {
+        return (
+            <View style={styles.agendaItem}>
+                <View style={styles.agendaItemInner}>
+                    <View style={styles.agendaItemSubtitle}>
+                        <Text style={styles.agendaItemSubtitleWeek}>{item.week}</Text>
+                        <Text style={styles.agendaItemSubtitleDay}>{item.day}</Text>
+                    </View>
+                    <View style={styles.agendaItemDetail}>
+                        <Text style={styles.agendaItemDetailTitle}>{item?.data?.title}</Text>
+                        <Text style={styles.agendaItemDetailDescription}>{item?.data?.description}</Text>
+                    </View>
+                </View>
+            </View>
         )
     }
 
@@ -60,32 +69,27 @@ const AgendaList: React.FC<AgendaListProps> = (props) => {
         console.log('onScrollToIndexFailed info: ', info);
     };
 
-    const getSectionIndex = (date: string) => {
-        return sections.findIndex((item) => sameWeek(item.date, date));
+    const renderItem = ({ item }: { item: AgendaListDataSource }) => {
+        return (
+            <View style={[styles.agendaItemContainer]}>
+                {item.type === 'month' && _renderSectionHeader(item)}
+                {item.type === 'week' && _renderWeek(item)}
+                {item.type === 'day' && _renderDay(item)}
+            </View>
+        )
     }
 
-    const scrollToSection = useCallback(debounce((date: string) => {
-        const sectionIndex = getSectionIndex(date);
-        listRef?.current.scrollToLocation({
-            animated: true,
-            sectionIndex: 4,
-            itemIndex: 3,
-            viewPosition: 0, // position at the top
-            viewOffset: 30,
-          });
-    }, 1000, {leading: false, trailing: true}), [sections])
-
-
     return (
-        <View style={styles.agendaContainer}>
-            <SectionList
+        <View style={[styles.agendaContainer]}>
+            <FlashList
                 ref={listRef}
-                sections={sections}
-                keyExtractor={(item, index) => item.date}
-                renderItem={({ item }) => <Item title={item} />}
-                renderSectionHeader={_renderSectionHeader}
+                data={dataSource}
+                bounces={false}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => item.key}
+                estimatedItemSize={18}
+                // initialScrollIndex={initialPageIndex}
                 showsVerticalScrollIndicator={false}
-                onScrollToIndexFailed={_onScrollToIndexFailed}
             />
         </View>
     )
