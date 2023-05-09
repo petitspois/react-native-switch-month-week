@@ -16,11 +16,11 @@ const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const { calendarWidth, markedDates, theme, locale, defaultDate } = props;
+	const { calendarWidth, markedDates, theme, locale } = props;
 	const context = useContext(CalendarContext)
+	const { date, defaultDate } = context;
 	const initDate = defaultDate ?? moment().format(DATE_FORMAT);
 	const styles = useMemo(()=> styleConstructor(theme), [theme]);
-	console.log('initDate :>> ', initDate);
 	//var
 	const containerWidth = calendarWidth || windowWidth;
 	const itemWidth = containerWidth / 7;
@@ -224,7 +224,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 			<View style={[styles.weekNamesContainer]}>
 				<WeekDaysNames locale={locale} styles={styles} layout={{ containerWidth, itemWidth, itemHeight }} dayNames={constants.dayNamesShort} firstDay={0} />
 			</View>
-			<View {...panResponder.panHandlers} style={[styles.calendar]}>
+			<View {...panResponder.panHandlers} style={[styles.calendar, styles.containerWrapperShadow]}>
 				<View>
 					<Animated.View style={[{ overflow: 'hidden', height: animatedContainerHeight.current }]}>
 						<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
@@ -263,12 +263,9 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 					</Animated.View>
 				</View>
 				{renderKnob()}
-				<View style={{height: 4}}>
-					<View style={[styles.containerWrapperShadow]}></View>
-				</View>
 			</View>
 			<View ref={reservationRef} style={[styles.reservationContainer]} {...reservationPanResponder.panHandlers} >
-				{!!weekSections.length && <AgendaList styles={styles} dataSource={weekSections} />}
+				{!!weekSections.length && <AgendaList initDate={initDate} styles={styles} dataSource={weekSections} />}
 			</View>
 		</View>
 	);

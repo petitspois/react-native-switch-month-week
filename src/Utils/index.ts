@@ -18,11 +18,11 @@ export const getYearMonthLocale = (date: string, locale: Locale) => {
 		case 'en':
 			return d.isSame(moment(), 'year') ? d.format('MMMM') : `${d.format('MMMM')} ${d.format('YYYY')}`;
 		case 'cn':
-			return d.isSame(moment(), 'year') ? d.format('M') + '月' : d.format('yyyy年MM日');
+			return d.isSame(moment(), 'year') ? d.format('M') + '月' : d.format('yyyy年MM月');
 		case 'hk':
-			return d.isSame(moment(), 'year') ? d.format('M') + '月' : d.format('yyyy年MM日');
+			return d.isSame(moment(), 'year') ? d.format('M') + '月' : d.format('yyyy年MM月');
 		case 'tw':
-			return d.isSame(moment(), 'year') ? d.format('M') + '月' : d.format('yyyy年MM日');
+			return d.isSame(moment(), 'year') ? d.format('M') + '月' : d.format('yyyy年MM月');
 		default:
 			return '';
 	}
@@ -76,10 +76,10 @@ export const generateWeekSections = (weekArray: string[], locale: Locale, marked
 		let sections: any = accumulator;
 		const isSameMonth = currentIndex ? moment(currentValue).isSame(origin[currentIndex - 1], 'month') : false;
 		if(!isSameMonth){
-			sections.push({ key: 'month_' + currentIndex, type: 'month', value: getYearMonthLocale(currentValue, locale) })
+			sections.push({ key: 'month_' + currentIndex, date: moment(currentValue).startOf('M').format(DATE_FORMAT), type: 'month', value: getYearMonthLocale(currentValue, locale) })
 		}
 		sections.push(
-			{ key: 'week_' + currentIndex, type: 'week', value: getRangeWeekLocale(currentValue, locale) }
+			{ key: 'week_' + currentIndex, date: currentValue, type: 'week', value: getRangeWeekLocale(currentValue, locale) }
 		)
 		getSameWeekForMarkedDates(markedDates || {}, currentValue, locale).forEach((item, idx) => {
 			sections.push({ ...item, key: `day_${currentIndex}_${idx}`, type: 'day' })

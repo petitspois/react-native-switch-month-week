@@ -10,17 +10,17 @@ import { CalendarContextProviderProps } from './type';
 import moment from 'moment';
 
 const CalendarProvider = (props: CalendarContextProviderProps) => {
-    const { date = moment().format(DATE_FORMAT), onDateChanged, onMonthChange, children } = props;
-    const prevDate = useRef(date);
-    const currDate = useRef(date); // for setDate only to keep prevDate up to date
-    const [currentDate, setCurrentDate] = useState(date);
+    const { defaultDate = moment().format(DATE_FORMAT), onDateChanged, onMonthChange, children } = props;
+    const prevDate = useRef(defaultDate);
+    const currDate = useRef(defaultDate); // for setDate only to keep prevDate up to date
+    const [currentDate, setCurrentDate] = useState(defaultDate);
     const [updateSource, setUpdateSource] = useState<UpdateSources>(UpdateSources.CALENDAR_INIT);
   
     useDidUpdate(() => {
-        if (date) {
-            _setDate(date, UpdateSources.PROP_UPDATE);
+        if (defaultDate) {
+            _setDate(defaultDate, UpdateSources.PROP_UPDATE);
         }
-    }, [date]);
+    }, [defaultDate]);
 
     const _setDate = useCallback((date: string, updateSource: UpdateSources) => {
         prevDate.current = currDate.current;
@@ -35,6 +35,7 @@ const CalendarProvider = (props: CalendarContextProviderProps) => {
 
     const contextValue = useMemo(() => {
         return {
+            defaultDate,
             date: currentDate,
             prevDate: prevDate.current,
             updateSource: updateSource,

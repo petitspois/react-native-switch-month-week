@@ -1661,6 +1661,11 @@
   dependencies:
     "@sinonjs/commons" "^2.0.0"
 
+"@stream-io/flat-list-mvcp@^0.10.2":
+  version "0.10.2"
+  resolved "https://registry.npmmirror.com/@stream-io/flat-list-mvcp/-/flat-list-mvcp-0.10.2.tgz#e247206c5c6409bb4af120e0f02d7b9b505f6e53"
+  integrity sha512-jebEKP7pfRF8/tVSqNM6qdvisfOtMnMlzGYTWldoOnIq9/6DS1BU4ilzBuH6O7iBUu4bDokrMCNJgA2b2EKW/A==
+
 "@tsconfig/react-native@^2.0.2":
   version "2.0.3"
   resolved "https://registry.npmmirror.com/@tsconfig/react-native/-/react-native-2.0.3.tgz#79ad8efc6d3729152da6cb23725b6c364a7349b2"
@@ -5769,6 +5774,11 @@ react-is@^17.0.1:
   version "17.0.2"
   resolved "https://registry.npmmirror.com/react-is/-/react-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
   integrity sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==
+
+react-native-bidirectional-infinite-scroll@^0.3.3:
+  version "0.3.3"
+  resolved "https://registry.npmmirror.com/react-native-bidirectional-infinite-scroll/-/react-native-bidirectional-infinite-scroll-0.3.3.tgz#31e83e30514be2eaaa889b97d01149c8a08576ec"
+  integrity sha512-zxYJDjrxTkGqg83WH3fSdufg79XZ7xDDn9HdHlKo9avAcz92Rf28/ivDeUM2aOUmmboqJK8BqtVByT6cF/taYg==
 
 react-native-calendars@^1.1294.0:
   version "1.1294.0"

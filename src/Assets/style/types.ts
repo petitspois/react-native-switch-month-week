@@ -7,11 +7,8 @@ export interface ReturnStyles {
 
     },
     containerWrapperShadow: {
-        shadowColor: string;
-        shadowOffset: { width: number, height: number };
-        shadowOpacity: number;
-        shadowRadius: number;
-        elevation: number;
+        borderBottomColor: string;
+        borderBottomWidth: number;
     },
     weekNamesContainer: {
         width: string | number;

@@ -3,7 +3,7 @@ import { ITheme, UpdateSources } from '../Constants/type';
 
 export interface CalendarContextProviderProps extends ViewProps {
     /** Initial date in 'yyyy-MM-dd' format. Default = now */
-    date?: string;
+    defaultDate?: string;
     /** Specify theme properties to override specific styles for calendar parts */
     theme?: Partial<ITheme>;
     /** Specify style for calendar container element */
@@ -15,6 +15,7 @@ export interface CalendarContextProviderProps extends ViewProps {
 }
 
 export interface CalendarContextProps {
+    defaultDate: string;
     date: string;
     prevDate: string;
     updateSource: UpdateSources;

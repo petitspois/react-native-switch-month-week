@@ -12,20 +12,8 @@ export const styleConstructor = (theme = {}) => {
         calendar: {
         },
         containerWrapperShadow: {
-            position: 'absolute',
-            bottom: 4,
-            left:0,
-            width: '100%',
-            height: 20,
-            zIndex: 99,
-            backgroundColor: 'transparent',
-            shadowColor: appStyle.knobShadowColor,
-            shadowOpacity: 0.25,
-            shadowRadius: 10,
-            shadowOffset: { height: 4, width: 0 },
-            elevation: 3
-            // borderBottomColor: appStyle.knobShadowColor,
-            // borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: appStyle.knobShadowColor,
+            borderBottomWidth: StyleSheet.hairlineWidth,
         },
         weekNamesContainer: {
             width: '100%',
@@ -134,6 +122,7 @@ export const styleConstructor = (theme = {}) => {
             color: appStyle.disabledButtonTextColor,
         },
         agendaItem: {
+            flex:1,
         },
         agendaItemInner: {
             flex: 1,
