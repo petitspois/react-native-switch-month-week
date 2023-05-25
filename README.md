@@ -2,7 +2,6 @@
 
 ## A declarative cross-platform React Native calendar component for iOS and Android.
 
-## Getting Started
 
 ## Features ✨
 

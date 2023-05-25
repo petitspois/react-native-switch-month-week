@@ -6,6 +6,7 @@ import { debounce } from 'lodash';
 import CalendarContext from '../Context';
 import { FlashList, FlashListProps, ViewToken } from "@shopify/flash-list";
 import { UpdateSources } from '../Constants/type';
+import { useDidUpdate } from '../Hooks';
 
 export interface AgendaListProps {
     dataSource: AgendaListDataSource[];
@@ -28,43 +29,52 @@ export interface AgendaListDataSource {
     value: string;
 }
 
+const viewabilityConfig = {
+    itemVisiblePercentThreshold: 6 // 50 means if 50% of the item is visible
+};
+
 const AgendaList: React.FC<AgendaListProps> = (props) => {
     const { dataSource, styles, initDate } = props;
     const listRef = useRef<any>()
     const didScroll = useRef(false);
     const sectionScroll = useRef(false);
+    const avoidDateUpdates = useRef(true);
     const context = useContext(CalendarContext)
-    const { date, setDate } = context;
+    const { date, setDate, updateSource } = context;
 
 
-    useEffect(() => {
-        scrollToSection(date);
+    useDidUpdate(() => {
+        if (updateSource !== UpdateSources.LIST_DRAG) {
+            console.log('date :>> ', date);
+            scrollToSection(date);
+        }
     }, [date])
 
     const _onViewableItemsChanged = (info: { viewableItems: Array<ViewToken>; changed: Array<ViewToken> }) => {
-        if (info?.viewableItems && !sectionScroll.current) {
+        if (info?.viewableItems && !sectionScroll.current && !avoidDateUpdates.current) {
             const d = info?.viewableItems?.[0]?.item?.date;
-            setDate(d, UpdateSources.LIST_DRAG)
+            if(typeof d === 'string'){
+                setDate(d, UpdateSources.LIST_DRAG)
+            }
         }
     }
 
     const _onMomentumScrollEnd = () => {
         sectionScroll.current = false;
-
     }
 
-    const _onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        if (!didScroll.current) {
-            didScroll.current = true;
-            scrollToSection.cancel();
+    const _onScrollBeginDrag = () => {
+        if(avoidDateUpdates.current){
+            avoidDateUpdates.current = false;
         }
-    };
+    }
 
     const scrollToSection = useCallback(debounce((d: string) => {
-        sectionScroll.current = true; 
+        console.log('3333 :>> ', 3333);
+        sectionScroll.current = true;
         const index = getIndexForDates(d);
         listRef.current?.scrollToIndex?.({ index, animated: true })
-    }, 1000, { leading: false, trailing: true}), [dataSource])
+    }, 500, { leading: false, trailing: true }), [dataSource])
 
     const getIndexForDates = (date: string) => {
         const sameDayIndex = dataSource.findIndex(item => item.date === date);
@@ -118,9 +128,6 @@ const AgendaList: React.FC<AgendaListProps> = (props) => {
         }
     }, [dataSource])
 
-    useEffect(() => {
-    }, [])
-
 
     return (
         <View style={[styles.agendaContainer]}>
@@ -137,9 +144,11 @@ const AgendaList: React.FC<AgendaListProps> = (props) => {
                 estimatedItemSize={60}
                 estimatedFirstItemOffset={0}
                 showsVerticalScrollIndicator={false}
+                viewabilityConfig={viewabilityConfig}
                 onViewableItemsChanged={_onViewableItemsChanged}
                 onMomentumScrollEnd={_onMomentumScrollEnd}
-                onScroll={_onScroll}
+                onScrollBeginDrag={_onScrollBeginDrag}
+                // onScroll={_onScroll}
 
             />
         </View>

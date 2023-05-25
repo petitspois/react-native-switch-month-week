@@ -45,6 +45,7 @@ const Example = () => {
             <MonthWeekCalendarProvider
                 // defaultDate='2021-04-13'
                 onMonthChange={(date, type) => {
+                    console.log('date 1231232131:>> ', date);
                     setCurrentMonth(date)
                 }}>
                 <MonthWeekCalendar
