@@ -17,8 +17,7 @@ export interface MonthWeekCalendarProps {
     calendarWidth?: number;
     markedDates?: MarkedDates;
     theme?: Partial<ITheme>;
-    defaultDate?: string;
-    customReservation?: () => JSX.Element;
+    customReservation?: () => JSX.Element | JSX.Element[] | null;
 }
 
 export type Mode = 'week' | 'month';

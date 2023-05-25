@@ -79,7 +79,7 @@ export const getSameWeekForMarkedDates = (markedDates: MarkedDates, date: string
 
 
 
-export const generateWeekSections = (weekArray: string[], locale: Locale, markedDates?: MarkedDates,) => {
+export const generateWeekSections = (weekArray: string[], locale: Locale = 'en', markedDates?: MarkedDates,) => {
 	let weekSections: any[] = weekArray.reduce((accumulator: any[], currentValue: string, currentIndex: number, origin: string[]) => {
 		let sections: any = accumulator;
 		const isSameMonth = currentIndex ? moment(currentValue).isSame(origin[currentIndex - 1], 'month') : false;
