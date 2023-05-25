@@ -16,7 +16,7 @@ const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const { calendarWidth, markedDates, theme, locale } = props;
+	const { calendarWidth, markedDates, theme, locale, customReservation } = props;
 	const context = useContext(CalendarContext)
 	const { date, defaultDate } = context;
 	const initDate = defaultDate ?? moment().format(DATE_FORMAT);
@@ -131,6 +131,11 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
 	const ltHalf = (dy: number) => {
 		return dy + pressedHeightRef.current < monthHalfHeight;
+	}
+
+	const renderReservation = () => {
+		if(!!customReservation) return customReservation()
+		return !!weekSections.length && <AgendaList initDate={initDate} styles={styles} dataSource={weekSections} />
 	}
 
 	const _panResponderMove = (dy: number) => {
@@ -265,7 +270,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 				{renderKnob()}
 			</View>
 			<View ref={reservationRef} style={[styles.reservationContainer]} {...reservationPanResponder.panHandlers} >
-				{!!weekSections.length && <AgendaList initDate={initDate} styles={styles} dataSource={weekSections} />}
+				{renderReservation()}
 			</View>
 		</View>
 	);

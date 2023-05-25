@@ -1,20 +1,23 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { MonthWeekCalendar } from '../src';
-import MonthWeekCalendarProvider from '../src/Context/Provider';
-import { ExpandableCalendar, AgendaList, CalendarProvider, WeekCalendar } from "react-native-calendars";
+import { MonthWeekCalendar, MonthWeekCalendarProvider } from '../src';
 import moment from 'moment';
 
 
 const Example = () => {
-    const [theme, setTheme] = useState<any>()
+    const [theme, setTheme] = useState<any>({
+        todayTextColor: '#3CA0AE',
+        selectedTodayButtonBackgroundColor: '#3CA0AE',
+        dotBackgroundColor: '#3CA0AE',
+        agendaItemTextColor: '#3CA0AE',
+    })
     const [date, setDate] = useState('2023-04-13')
     const [currentMonth, setCurrentMonth] = useState<string>(moment().startOf('month').format('YYYY-MM-DD'))
     const [markedDates, setMarkedDates] = useState({
-        '2023-05-01': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' } },
-        '2023-05-02': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' } },
-        '2023-05-07': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' } },
-        '2023-05-05': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' } },
+        '2023-05-13': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' } },
+        '2023-05-22': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' } },
+        '2023-05-17': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' } },
+        '2023-05-24': { marked: true, markedColor: '#000', data: { title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' } },
     })
 
     useEffect(() => {

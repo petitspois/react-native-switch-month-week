@@ -103,8 +103,6 @@ export const styleConstructor = (theme = {}) => {
             backgroundColor: appStyle.containerBackgroundColor
         },
         agendaHeaderContainer: {
-            // paddingHorizontal: 18,
-            paddingVertical: 12,
             flexDirection: 'row',
         },
         agendaHeaderText: {
@@ -114,34 +112,34 @@ export const styleConstructor = (theme = {}) => {
         },
         agendaItemContainer: {
             paddingHorizontal: 18,
+            justifyContent: 'center',
+            height: 60,
             backgroundColor: appStyle.reservationBackgroundColor
         },
         agendaItemTitle: {
-            marginVertical: 12,
             marginLeft: 52,
             color: appStyle.disabledButtonTextColor,
         },
         agendaItem: {
             flex:1,
+            justifyContent: 'center',
         },
         agendaItemInner: {
-            flex: 1,
             flexDirection: 'row',
-            marginVertical: 12,
             height: 50,
         },
         agendaItemSubtitle: {
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            justifyContent: 'center',
+            alignItems: 'flex-start',
             width: 40,
         },
         agendaItemSubtitleWeek: {
             color: appStyle.buttonTextColor,
-            fontSize: 16,
+            fontSize: 12,
         },
         agendaItemSubtitleDay: {
             color: appStyle.buttonTextColor,
-            fontSize: 26,
+            fontSize: 20,
             fontWeight: 'bold'
         },
         agendaItemDetail: {

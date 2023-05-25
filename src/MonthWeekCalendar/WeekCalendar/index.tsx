@@ -103,11 +103,15 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 		// TODO: 根据月点击的日期，更新周的位置
 		if (
 			!sameWeek(prevDate, date) &&
-			(updateSource === UpdateSources.MONTH_SCROLL || updateSource === UpdateSources.MONTH_DAY_PRESS)
+			(
+				updateSource === UpdateSources.MONTH_SCROLL ||
+				updateSource === UpdateSources.MONTH_DAY_PRESS ||
+				updateSource === UpdateSources.LIST_DRAG
+			)
 		) {
 			disablePanChange(true);
 			const index = dataSource.findIndex(item => sameWeek(item, date));
-			list.current?.scrollToIndex?.({animated:true, index});
+			list.current?.scrollToIndex?.({animated: !(updateSource === UpdateSources.LIST_DRAG), index});
 		}
 	}, [date, updateSource])
 

@@ -1,11 +1,11 @@
-import { StyleSheet, Text, View, SectionList, SectionListProps } from 'react-native'
+import { StyleSheet, Text, View, SectionList, SectionListProps, NativeSyntheticEvent, NativeScrollEvent } from 'react-native'
 import React, { useImperativeHandle, useRef, useCallback, useEffect, useContext, useMemo, useLayoutEffect, useState } from 'react'
-import { getYearMonthLocale, sameWeek, sameMonth } from '../Utils';
+import { getYearMonthLocale, sameWeek, chunkRight } from '../Utils';
 import { ReturnStyles } from '../Assets/style/types';
 import { debounce } from 'lodash';
 import CalendarContext from '../Context';
-import { FlatList } from "react-native-bidirectional-infinite-scroll";
-import { chunk } from 'lodash';
+import { FlashList, FlashListProps, ViewToken } from "@shopify/flash-list";
+import { UpdateSources } from '../Constants/type';
 
 export interface AgendaListProps {
     dataSource: AgendaListDataSource[];
@@ -31,47 +31,49 @@ export interface AgendaListDataSource {
 const AgendaList: React.FC<AgendaListProps> = (props) => {
     const { dataSource, styles, initDate } = props;
     const listRef = useRef<any>()
+    const didScroll = useRef(false);
+    const sectionScroll = useRef(false);
     const context = useContext(CalendarContext)
-    const { date } = context;
-    const initIndex = dataSource.findIndex(item => item.type === 'month' && sameMonth(item.date, initDate));
-    const chunkDataSource = chunk(dataSource, 20);
-    const [data, setData] = useState<AgendaListDataSource[]>([])
-    const queryDate = (date: string, size=20): Promise<any> => {
-        return new Promise((resolve) => {
-            const index = dataSource.findIndex(item => sameWeek(item.date, date));
-            setTimeout(() => {
-                if(size>=0){
-                    resolve(
-                        dataSource.slice(index+1, index + size) as AgendaListDataSource[]
-                    )
-                }else{
-                    resolve(
-                       dataSource.slice(index + size, index) as AgendaListDataSource[]
-                    )
-                }
-            }, 2000);
-        })
-    }
+    const { date, setDate } = context;
 
 
-    console.log('chunkDataSource :>> ', chunkDataSource);
-    const init = async () => {
-        const newData = await queryDate(date)
-        setData(newData)
+    useEffect(() => {
+        scrollToSection(date);
+    }, [date])
+
+    const _onViewableItemsChanged = (info: { viewableItems: Array<ViewToken>; changed: Array<ViewToken> }) => {
+        if (info?.viewableItems && !sectionScroll.current) {
+            const d = info?.viewableItems?.[0]?.item?.date;
+            setDate(d, UpdateSources.LIST_DRAG)
+        }
     }
 
-    const _onStartReached = async () => {
-        // const newData = await queryDate(data[0].date, -20)
-        // setData(newData)
+    const _onMomentumScrollEnd = () => {
+        sectionScroll.current = false;
+
     }
 
-    const _onEndReached = async () => {
-        const newData = await queryDate(data[data.length-1].date, 20)
-        console.log('newData :>> ', newData);
-        // setData(d=> {
-        //     return d.concat(newData)
-        // })
+    const _onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        if (!didScroll.current) {
+            didScroll.current = true;
+            scrollToSection.cancel();
+        }
+    };
+
+    const scrollToSection = useCallback(debounce((d: string) => {
+        sectionScroll.current = true; 
+        const index = getIndexForDates(d);
+        listRef.current?.scrollToIndex?.({ index, animated: true })
+    }, 1000, { leading: false, trailing: true}), [dataSource])
+
+    const getIndexForDates = (date: string) => {
+        const sameDayIndex = dataSource.findIndex(item => item.date === date);
+        const sameWeekIndex = dataSource.findIndex(item => sameWeek(item.date, date));
+        return sameDayIndex === -1 ? sameWeekIndex : sameDayIndex
     }
+
+    const initIndex = useRef(getIndexForDates(initDate))
+
 
     const _renderSectionHeader = (item: AgendaListDataSource) => {
         return (
@@ -104,44 +106,25 @@ const AgendaList: React.FC<AgendaListProps> = (props) => {
         )
     }
 
-    const _onScrollToIndexFailed = (info: { index: number; highestMeasuredFrameIndex: number; averageItemLength: number }) => {
-        console.log('onScrollToIndexFailed info: ', info);
-    };
 
     const renderItem = useCallback(({ item }: { item: AgendaListDataSource }) => {
         switch (item.type) {
             case 'month':
-                return <View style={[styles.agendaItemContainer, { height: 56.3 }]}>{_renderSectionHeader(item)}</View>
+                return <View style={[styles.agendaItemContainer,]}>{_renderSectionHeader(item)}</View>
             case 'week':
-                return <View style={[styles.agendaItemContainer, { height: 43 }]}>{_renderWeek(item)}</View>
+                return <View style={[styles.agendaItemContainer,]}>{_renderWeek(item)}</View>
             case 'day':
-                return <View style={[styles.agendaItemContainer, { height: 74 }]}>{_renderDay(item)}</View>
+                return <View style={[styles.agendaItemContainer,]}>{_renderDay(item)}</View>
         }
     }, [dataSource])
 
     useEffect(() => {
-        init();
     }, [])
+
 
     return (
         <View style={[styles.agendaContainer]}>
-            {data.length ? <FlatList
-                ref={listRef}
-                data={data}
-                bounces={false}
-                renderItem={renderItem}
-                getItemLayout={(data, index) => {
-                    const type = (data && data[index]?.type) || 'month';
-                    const itemHeight = type === 'month' ? 56.3 : type === 'week' ? 43 : 74;
-                    return { length: itemHeight, offset: itemHeight * index, index };
-                }}
-                keyExtractor={(item, index) => item.key}
-                showsVerticalScrollIndicator={false}
-                onStartReached={_onStartReached}
-                onEndReached={_onEndReached}
-                showDefaultLoadingIndicators
-            /> : null}
-            {/* <FlashList
+            <FlashList
                 ref={listRef}
                 data={dataSource}
                 bounces={false}
@@ -150,11 +133,15 @@ const AgendaList: React.FC<AgendaListProps> = (props) => {
                 getItemType={(item) => {
                     return item.type;
                 }}
-                initialScrollIndex={initialIndex}
-                estimatedItemSize={57.8}
+                initialScrollIndex={initIndex.current}
+                estimatedItemSize={60}
                 estimatedFirstItemOffset={0}
                 showsVerticalScrollIndicator={false}
-            /> */}
+                onViewableItemsChanged={_onViewableItemsChanged}
+                onMomentumScrollEnd={_onMomentumScrollEnd}
+                onScroll={_onScroll}
+
+            />
         </View>
     )
 }

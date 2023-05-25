@@ -1,9 +1,8 @@
 import React from 'react';
 import { ScrollViewProps } from 'react-native';
-import { RecyclerListViewProps } from 'recyclerlistview';
-export interface InfiniteListProps extends Omit<RecyclerListViewProps, 'dataProvider' | 'layoutProvider' | 'rowRenderer'> {
+export interface InfiniteListProps {
     data: any[];
-    renderItem: RecyclerListViewProps['rowRenderer'];
+    renderItem: () => JSX.Element | JSX.Element[] | null;
     pageWidth?: number;
     pageHeight?: number;
     onPageChange?: (pageIndex: number, prevPageIndex: number, info: {

@@ -1,7 +1,8 @@
 {
   "name": "reactNativeSwitchMonthWeek",
   "version": "0.0.1",
-  "private": true,
+  "description": "react native calendar with a week and month view",
+  "main": "src/index.ts",
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
@@ -9,6 +10,24 @@
     "start": "react-native start",
     "test": "jest"
   },
+  "author": {
+    "name": "petitspois",
+    "email": "4039293@qq.com"
+  },
+  "keywords": [
+    "react-native",
+    "react-component",
+    "react-native-component",
+    "react",
+    "mobile",
+    "ios",
+    "android",
+    "reactNativeSwitchMonthWeek",
+    "calendar",
+    "week",
+    "month",
+    "agenda"
+  ],
   "dependencies": {
     "@shopify/flash-list": "^1.4.2",
     "@stream-io/flat-list-mvcp": "^0.10.2",
@@ -17,9 +36,6 @@
     "moment": "^2.29.4",
     "react": "18.2.0",
     "react-native": "0.71.2",
-    "react-native-bidirectional-infinite-scroll": "^0.3.3",
-    "react-native-calendars": "^1.1294.0",
-    "recyclerlistview": "^3.0.5",
     "xdate": "^0.8.0"
   },
   "devDependencies": {

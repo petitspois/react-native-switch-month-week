@@ -4,15 +4,14 @@ import noop from 'lodash/noop';
 
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollViewProps, View, Animated, FlatListProps, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
-import { DataProvider, LayoutProvider, RecyclerListView, RecyclerListViewProps,  } from 'recyclerlistview';
 import { FlashList, FlashListProps, ViewToken } from "@shopify/flash-list";
 import constants from '../Utils/constants';
 import { useCombinedRefs } from '../Hooks';
 
 
-export interface InfiniteListProps
-    extends Omit<RecyclerListViewProps, 'dataProvider' | 'layoutProvider' | 'rowRenderer'> {
+export interface InfiniteListProps {
     data: any[];
+    isHorizontal: boolean;
     renderItem: FlashListProps<string>["renderItem"];
     pageWidth?: number;
     pageHeight?: number;
@@ -25,6 +24,7 @@ export interface InfiniteListProps
     reloadPages?: (pageIndex: number) => void;
     positionIndex?: number;
     mode?: 'week' | 'month';
+    extendedState:any;
 }
 
 const InfiniteList = (props: InfiniteListProps, ref: any) => {
@@ -163,24 +163,6 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
             />
         </View>
     )
-
-    // return (
-    //     <RecyclerListView
-    //         // @ts-expect-error
-    //         ref={listRef}
-    //         mode={mode}
-    //         isHorizontal={isHorizontal}
-    //         rowRenderer={renderItem}
-    //         dataProvider={dataProvider}
-    //         layoutProvider={layoutProvider.current}
-    //         extendedState={extendedState}
-    //         initialRenderIndex={initialPageIndex}
-    //         renderAheadOffset={7 * pageWidth}
-    //         onScroll={onScroll}
-    //         style={style}
-    //         scrollViewProps={scrollViewPropsMemo}
-    //     />
-    // );
 };
 
 export default forwardRef(InfiniteList);

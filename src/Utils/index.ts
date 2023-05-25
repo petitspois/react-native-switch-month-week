@@ -12,6 +12,14 @@ function isValidXDate(date: Date) {
 }
 
 
+export const chunkRight = (arr: any[], size: number) => {
+	const rm = arr.length % size;
+	return rm ?
+		[arr.slice(0, rm), ..._.chunk(arr.slice(rm), size)]
+		:
+		_.chunk(arr, size);
+};
+
 export const getYearMonthLocale = (date: string, locale: Locale) => {
 	const d = moment(date);
 	switch (locale) {
@@ -75,7 +83,7 @@ export const generateWeekSections = (weekArray: string[], locale: Locale, marked
 	let weekSections: any[] = weekArray.reduce((accumulator: any[], currentValue: string, currentIndex: number, origin: string[]) => {
 		let sections: any = accumulator;
 		const isSameMonth = currentIndex ? moment(currentValue).isSame(origin[currentIndex - 1], 'month') : false;
-		if(!isSameMonth){
+		if (!isSameMonth) {
 			sections.push({ key: 'month_' + currentIndex, date: moment(currentValue).startOf('M').format(DATE_FORMAT), type: 'month', value: getYearMonthLocale(currentValue, locale) })
 		}
 		sections.push(
