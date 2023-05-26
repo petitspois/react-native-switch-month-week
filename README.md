@@ -1,3 +1,5 @@
+![image](https://github.com/petitspois/react-native-switch-month-week/blob/main/src/Assets/images/1159612b7feb0bb337cac0887959357e.gif?raw=true)
+
 # React Native Switch Month Week
 
 ## A declarative cross-platform React Native calendar component for iOS and Android.
