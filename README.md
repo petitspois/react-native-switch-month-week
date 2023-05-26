@@ -91,6 +91,7 @@ $ yarn add react-native-switch-month-week
 | markedDates       | Calendar mark                                                           | drill down        |
 | theme             | Specify theme properties to override specific styles for calendar parts | drill down        |
 | customReservation | User-defined reserved areas                                             | () => JSX.Element |
+| onAgendaItemPress | Agenda click event                                                      | () => void        |
 
 ### Locale
 

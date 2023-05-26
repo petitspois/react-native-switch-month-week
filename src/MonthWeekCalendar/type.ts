@@ -1,4 +1,5 @@
 import type { ITheme } from '../Constants/type';
+import type { AgendaListDataSource } from '../AgendaList';
 
 
 export interface MarkedData {
@@ -18,6 +19,7 @@ export interface MonthWeekCalendarProps {
     markedDates?: MarkedDates;
     theme?: Partial<ITheme>;
     customReservation?: () => JSX.Element | JSX.Element[] | null;
+    onAgendaItemPress?: (data: AgendaListDataSource) => void;
 }
 
 export type Mode = 'week' | 'month';

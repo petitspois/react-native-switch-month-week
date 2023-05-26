@@ -16,7 +16,7 @@ const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const { calendarWidth, markedDates, theme, locale, customReservation } = props;
+	const { calendarWidth, markedDates, theme, locale, customReservation, onAgendaItemPress } = props;
 	const context = useContext(CalendarContext)
 	const { date, defaultDate } = context;
 	const initDate = defaultDate ?? moment().format(DATE_FORMAT);
@@ -136,7 +136,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
 	const renderReservation = () => {
 		if (!!customReservation) return customReservation()
-		return !!weekSections.length && <AgendaList isEdge={isEdge} updateMonthPosition={updateMonthPosition} initDate={initDate} styles={styles} dataSource={weekSections} />
+		return !!weekSections.length && <AgendaList onAgendaItemPress={props.onAgendaItemPress} isEdge={isEdge} updateMonthPosition={updateMonthPosition} initDate={initDate} styles={styles} dataSource={weekSections} />
 	}
 
 	const _panResponderMove = (dy: number) => {

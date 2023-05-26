@@ -1,19 +1,20 @@
-import { StyleSheet, Text, View, SectionList, SectionListProps, NativeSyntheticEvent, NativeScrollEvent } from 'react-native'
+import { StyleSheet, Text, View, SectionList, SectionListProps, NativeSyntheticEvent, NativeScrollEvent, ViewToken, FlatList, TouchableWithoutFeedback } from 'react-native'
 import React, { useImperativeHandle, useRef, useCallback, useEffect, useContext, useMemo, useLayoutEffect, useState } from 'react'
 import { getYearMonthLocale, sameWeek, getRowAboveTheWeek, getRowInPage } from '../Utils';
 import { ReturnStyles } from '../Assets/style/types';
 import { debounce } from 'lodash';
 import CalendarContext from '../Context';
-import { FlashList, FlashListProps, ViewToken } from "@shopify/flash-list";
 import { UpdateSources } from '../Constants/type';
 import { useDidUpdate } from '../Hooks';
+// import { LargeList } from "react-native-largelist";
 
 export interface AgendaListProps {
     dataSource: AgendaListDataSource[];
     styles: ReturnStyles;
     initDate: string;
-	updateMonthPosition: (rows: number) => void;
-	isEdge: (date: string) => { isStartEdge: boolean, isEndEdge: boolean }
+    updateMonthPosition: (rows: number) => void;
+    isEdge: (date: string) => { isStartEdge: boolean, isEndEdge: boolean }
+    onAgendaItemPress?: (data: AgendaListDataSource) => void;
 }
 
 export interface AgendaListDataSource {
@@ -37,6 +38,7 @@ export interface AgendaListDataSource {
 
 const AgendaList: React.FC<AgendaListProps> = (props) => {
     const { dataSource, styles, initDate, updateMonthPosition, isEdge } = props;
+    const listData = [{ items: [...dataSource] }]
     const listRef = useRef<any>()
     const didScroll = useRef(false);
     const sectionScroll = useRef(false);
@@ -53,31 +55,31 @@ const AgendaList: React.FC<AgendaListProps> = (props) => {
     }, [date])
 
     const updateMonthPositionHandler = (date: string) => {
-		if (isEdge(date).isEndEdge) {
-			updateMonthPosition(getRowInPage(date));
-		} else if (isEdge(date).isStartEdge) {
-			updateMonthPosition(0);
-		} else {
-			updateMonthPosition(getRowAboveTheWeek(date))
-		}
-	}
+        if (isEdge(date).isEndEdge) {
+            updateMonthPosition(getRowInPage(date));
+        } else if (isEdge(date).isStartEdge) {
+            updateMonthPosition(0);
+        } else {
+            updateMonthPosition(getRowAboveTheWeek(date))
+        }
+    }
 
-    const _onViewableItemsChanged = (info: { viewableItems: Array<ViewToken>; changed: Array<ViewToken> }) => {
+    const _onViewableItemsChanged = useCallback((info: { viewableItems: ViewToken[], changed: ViewToken[] }) => {
         if (info?.viewableItems && !sectionScroll.current && !avoidDateUpdates.current) {
             const d = info?.viewableItems?.[0]?.item?.date;
-            if(typeof d === 'string'){
+            if (typeof d === 'string') {
                 updateMonthPositionHandler(d);
                 setDate(d, UpdateSources.LIST_DRAG)
             }
         }
-    }
+    }, [dataSource])
 
     const _onMomentumScrollEnd = () => {
         sectionScroll.current = false;
     }
 
     const _onScrollBeginDrag = () => {
-        if(avoidDateUpdates.current){
+        if (avoidDateUpdates.current) {
             avoidDateUpdates.current = false;
         }
     }
@@ -111,20 +113,28 @@ const AgendaList: React.FC<AgendaListProps> = (props) => {
         )
     }
 
+    const _onDayPress = (item: AgendaListDataSource) => {
+        if(props.onAgendaItemPress){
+            props.onAgendaItemPress(item);
+        }
+    }
+
     const _renderDay = (item: AgendaListDataSource) => {
         return (
-            <View style={styles.agendaItem}>
-                <View style={styles.agendaItemInner}>
-                    <View style={styles.agendaItemSubtitle}>
-                        <Text style={styles.agendaItemSubtitleWeek}>{item.week}</Text>
-                        <Text style={styles.agendaItemSubtitleDay}>{item.day}</Text>
-                    </View>
-                    <View style={styles.agendaItemDetail}>
-                        <Text style={styles.agendaItemDetailTitle}>{item?.data?.title}</Text>
-                        <Text style={styles.agendaItemDetailDescription}>{item?.data?.description}</Text>
+            <TouchableWithoutFeedback onPress={()=>_onDayPress(item)}>
+                <View style={styles.agendaItem}>
+                    <View style={styles.agendaItemInner}>
+                        <View style={styles.agendaItemSubtitle}>
+                            <Text style={styles.agendaItemSubtitleWeek}>{item.week}</Text>
+                            <Text style={styles.agendaItemSubtitleDay}>{item.day}</Text>
+                        </View>
+                        <View style={styles.agendaItemDetail}>
+                            <Text style={styles.agendaItemDetailTitle}>{item?.data?.title}</Text>
+                            <Text style={styles.agendaItemDetailDescription}>{item?.data?.description}</Text>
+                        </View>
                     </View>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
         )
     }
 
@@ -139,29 +149,25 @@ const AgendaList: React.FC<AgendaListProps> = (props) => {
                 return <View style={[styles.agendaItemContainer,]}>{_renderDay(item)}</View>
         }
     }, [dataSource])
+  
 
 
+    console.log('dataSource :>> ', [{ items: dataSource }]);
     return (
         <View style={[styles.agendaContainer]}>
-            <FlashList
+    
+            <FlatList
                 ref={listRef}
                 data={dataSource}
                 bounces={false}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => item.key}
-                getItemType={(item) => {
-                    return item.type;
-                }}
                 initialScrollIndex={initIndex.current}
-                estimatedItemSize={60}
-                estimatedFirstItemOffset={0}
+                keyExtractor={(item, index) => item.key}
+                renderItem={renderItem}
                 showsVerticalScrollIndicator={false}
-                // viewabilityConfig={viewabilityConfig}
+                getItemLayout={(data, index) => ({ length: 60, offset: 60 * index, index })}
                 onViewableItemsChanged={_onViewableItemsChanged}
                 onMomentumScrollEnd={_onMomentumScrollEnd}
                 onScrollBeginDrag={_onScrollBeginDrag}
-                // onScroll={_onScroll}
-
             />
         </View>
     )
