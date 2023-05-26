@@ -1,4 +1,9 @@
-![image](https://github.com/petitspois/react-native-switch-month-week/blob/main/src/Assets/images/1159612b7feb0bb337cac0887959357e.gif?raw=true)
+
+
+
+<p align="center" >
+    <img alt="react-native-gifted-chat" src="https://github.com/petitspois/react-native-switch-month-week/blob/main/src/Assets/images/1159612b7feb0bb337cac0887959357e.gif" width="260" height="510" />
+</p>
 
 # React Native Switch Month Week
 
