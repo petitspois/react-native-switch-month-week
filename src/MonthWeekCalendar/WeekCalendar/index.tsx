@@ -48,7 +48,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 
 	const onPageChange = useCallback((page: ViewToken, prevPage: ViewToken, { scrolledByUser }: any) => {
 		if (
-			list.current.props.mode === 'week' && 
+			list.current.props.mode === 'week' &&
 			scrolledByUser
 		) {
 			// 上一页选中的是星期几
@@ -59,7 +59,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 			const rows = getRowAboveTheWeek(weekCurrent)
 			if (isEdge(weekCurrent).isEndEdge) {
 				updateMonthPosition(getRowInPage(weekCurrent));
-			} else if(isEdge(weekCurrent).isStartEdge){
+			} else if (isEdge(weekCurrent).isStartEdge) {
 				updateMonthPosition(0);
 			}
 			else {
@@ -79,13 +79,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 
 	const onDayPress = (value: string) => {
 
-		if (isEdge(value).isEndEdge) {
-			updateMonthPosition(getRowInPage(value));
-		}else if(isEdge(value).isStartEdge){
-			updateMonthPosition(0);
-		}else{
-			updateMonthPosition(getRowAboveTheWeek(value))
-		}
+		updateMonthPositionHandler(value);
 		prevWeek.current = moment(value).day();
 		context?.setDate(value, UpdateSources.WEEK_DAY_PRESS)
 	}
@@ -98,6 +92,16 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 		disablePanChange(false);
 	}
 
+	const updateMonthPositionHandler = (date: string) => {
+		if (isEdge(date).isEndEdge) {
+			updateMonthPosition(getRowInPage(date));
+		} else if (isEdge(date).isStartEdge) {
+			updateMonthPosition(0);
+		} else {
+			updateMonthPosition(getRowAboveTheWeek(date))
+		}
+	}
+
 
 	useEffect(() => {
 		// TODO: 根据月点击的日期，更新周的位置
@@ -105,14 +109,20 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 			!sameWeek(prevDate, date) &&
 			(
 				updateSource === UpdateSources.MONTH_SCROLL ||
-				updateSource === UpdateSources.MONTH_DAY_PRESS ||
-				updateSource === UpdateSources.LIST_DRAG
+				updateSource === UpdateSources.MONTH_DAY_PRESS
 			)
 		) {
 			disablePanChange(true);
 			const index = dataSource.findIndex(item => sameWeek(item, date));
-			list.current?.scrollToIndex?.({animated: !(updateSource === UpdateSources.LIST_DRAG), index});
+			list.current?.scrollToIndex?.({ animated: true, index });
 		}
+
+		if(updateSource === UpdateSources.LIST_DRAG){
+			disablePanChange(true);
+			const index = dataSource.findIndex(item => sameWeek(item, date));
+			list.current?.scrollToIndex?.({ animated: false, index });
+		}
+		
 	}, [date, updateSource])
 
 
@@ -134,7 +144,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 				onScrollBeginDrag,
 				onMomentumScrollEnd,
 			}}
-			/>
+		/>
 	)
 }
 

@@ -78,13 +78,26 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 		 */
 		if (
 			!sameMonth(prevDate, date) &&
-			(updateSource === UpdateSources.WEEK_SCROLL || updateSource === UpdateSources.WEEK_DAY_PRESS)
+			(
+				updateSource === UpdateSources.WEEK_SCROLL || 
+				updateSource === UpdateSources.WEEK_DAY_PRESS 
+			)
 		) {
 			const pageIndex = dataSource.findIndex(item => sameMonth(item, date))
 			// TODO: 超过边界不需要处理
 			if (pageIndex !== -1) {
 				disablePanChange(true);
 				list.current?.scrollToIndex?.({ animated: true, index: pageIndex });
+			}
+		}
+
+
+		if(updateSource && UpdateSources.LIST_DRAG) {
+			const pageIndex = dataSource.findIndex(item => sameMonth(item, date))
+			// TODO: 超过边界不需要处理
+			if (pageIndex !== -1) {
+				disablePanChange(true);
+				list.current?.scrollToIndex?.({ animated: false, index: pageIndex });
 			}
 		}
 

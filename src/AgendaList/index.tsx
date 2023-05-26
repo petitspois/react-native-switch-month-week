@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, SectionList, SectionListProps, NativeSyntheticEvent, NativeScrollEvent } from 'react-native'
 import React, { useImperativeHandle, useRef, useCallback, useEffect, useContext, useMemo, useLayoutEffect, useState } from 'react'
-import { getYearMonthLocale, sameWeek, chunkRight } from '../Utils';
+import { getYearMonthLocale, sameWeek, getRowAboveTheWeek, getRowInPage } from '../Utils';
 import { ReturnStyles } from '../Assets/style/types';
 import { debounce } from 'lodash';
 import CalendarContext from '../Context';
@@ -12,6 +12,8 @@ export interface AgendaListProps {
     dataSource: AgendaListDataSource[];
     styles: ReturnStyles;
     initDate: string;
+	updateMonthPosition: (rows: number) => void;
+	isEdge: (date: string) => { isStartEdge: boolean, isEndEdge: boolean }
 }
 
 export interface AgendaListDataSource {
@@ -29,18 +31,18 @@ export interface AgendaListDataSource {
     value: string;
 }
 
-const viewabilityConfig = {
-    itemVisiblePercentThreshold: 6 // 50 means if 50% of the item is visible
-};
+// const viewabilityConfig = {
+//     itemVisiblePercentThreshold: 6 // 50 means if 50% of the item is visible
+// };
 
 const AgendaList: React.FC<AgendaListProps> = (props) => {
-    const { dataSource, styles, initDate } = props;
+    const { dataSource, styles, initDate, updateMonthPosition, isEdge } = props;
     const listRef = useRef<any>()
     const didScroll = useRef(false);
     const sectionScroll = useRef(false);
     const avoidDateUpdates = useRef(true);
     const context = useContext(CalendarContext)
-    const { date, setDate, updateSource } = context;
+    const { date, setDate, updateSource, setUpdateSource } = context;
 
 
     useDidUpdate(() => {
@@ -50,10 +52,21 @@ const AgendaList: React.FC<AgendaListProps> = (props) => {
         }
     }, [date])
 
+    const updateMonthPositionHandler = (date: string) => {
+		if (isEdge(date).isEndEdge) {
+			updateMonthPosition(getRowInPage(date));
+		} else if (isEdge(date).isStartEdge) {
+			updateMonthPosition(0);
+		} else {
+			updateMonthPosition(getRowAboveTheWeek(date))
+		}
+	}
+
     const _onViewableItemsChanged = (info: { viewableItems: Array<ViewToken>; changed: Array<ViewToken> }) => {
         if (info?.viewableItems && !sectionScroll.current && !avoidDateUpdates.current) {
             const d = info?.viewableItems?.[0]?.item?.date;
             if(typeof d === 'string'){
+                updateMonthPositionHandler(d);
                 setDate(d, UpdateSources.LIST_DRAG)
             }
         }
@@ -70,7 +83,6 @@ const AgendaList: React.FC<AgendaListProps> = (props) => {
     }
 
     const scrollToSection = useCallback(debounce((d: string) => {
-        console.log('3333 :>> ', 3333);
         sectionScroll.current = true;
         const index = getIndexForDates(d);
         listRef.current?.scrollToIndex?.({ index, animated: true })
@@ -144,7 +156,7 @@ const AgendaList: React.FC<AgendaListProps> = (props) => {
                 estimatedItemSize={60}
                 estimatedFirstItemOffset={0}
                 showsVerticalScrollIndicator={false}
-                viewabilityConfig={viewabilityConfig}
+                // viewabilityConfig={viewabilityConfig}
                 onViewableItemsChanged={_onViewableItemsChanged}
                 onMomentumScrollEnd={_onMomentumScrollEnd}
                 onScrollBeginDrag={_onScrollBeginDrag}

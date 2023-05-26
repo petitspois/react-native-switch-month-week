@@ -39,6 +39,7 @@ const CalendarProvider = (props: CalendarContextProviderProps) => {
             date: currentDate,
             prevDate: prevDate.current,
             updateSource: updateSource,
+            setUpdateSource,
             setDate: _setDate,
         };
     }, [currentDate, updateSource]);

@@ -20,13 +20,13 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const context = useContext(CalendarContext)
 	const { date, defaultDate } = context;
 	const initDate = defaultDate ?? moment().format(DATE_FORMAT);
-	const styles = useMemo(()=> styleConstructor(theme), [theme]);
+	const styles = useMemo(() => styleConstructor(theme), [theme]);
 	//var
 	const containerWidth = calendarWidth || windowWidth;
 	const itemWidth = containerWidth / 7;
 	const itemHeight = containerWidth / 8;
 	const monthHeight = itemHeight * 6;
-	const monthHalfHeight = monthHeight/2;
+	const monthHalfHeight = monthHeight / 2;
 	//ref
 	const AgendaRef = useRef<any>()
 	const animatedContainerHeight = useRef(new Animated.Value(itemHeight));
@@ -42,11 +42,11 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
 	const disablePanTimeRef = useRef<any>(null);
 	const handlerDisablePan = (disabled: boolean) => {
-		if(disablePan.current !== disabled) {
+		if (disablePan.current !== disabled) {
 			disablePanTimeRef.current && clearTimeout(disablePanTimeRef.current);
-			if(disabled){
+			if (disabled) {
 				disablePan.current = disabled;
-			}else{
+			} else {
 				disablePanTimeRef.current = setTimeout(() => {
 					disablePan.current = disabled;
 				}, 300);
@@ -59,6 +59,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	}
 
 	const updateMonthPosition = (rows: number) => {
+		console.log('rows :>> ', rows);
 		monthPositionRef.current = rows * itemHeight;
 	}
 
@@ -101,7 +102,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		}).start((finish) => {
 			if (finish) {
 				modeRef.current = 'month'
-				reservationRef.current?.setNativeProps({ pointerEvents: 'box-only'})
+				reservationRef.current?.setNativeProps({ pointerEvents: 'box-only' })
 				cb && cb('month')
 			}
 		})
@@ -115,16 +116,16 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		}).start((finish) => {
 			if (finish) {
 				modeRef.current = 'week'
-				reservationRef.current?.setNativeProps({ pointerEvents: 'box-none'})
+				reservationRef.current?.setNativeProps({ pointerEvents: 'box-none' })
 				cb && cb('week')
 			}
 		})
 	}
 
 	const openOrCloseCalendar = (dy: number) => {
-		if(ltHalf(dy)){
+		if (ltHalf(dy)) {
 			closeCalendar()
-		}else{
+		} else {
 			openCalendar()
 		}
 	}
@@ -134,8 +135,8 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	}
 
 	const renderReservation = () => {
-		if(!!customReservation) return customReservation()
-		return !!weekSections.length && <AgendaList initDate={initDate} styles={styles} dataSource={weekSections} />
+		if (!!customReservation) return customReservation()
+		return !!weekSections.length && <AgendaList isEdge={isEdge} updateMonthPosition={updateMonthPosition} initDate={initDate} styles={styles} dataSource={weekSections} />
 	}
 
 	const _panResponderMove = (dy: number) => {
@@ -155,7 +156,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	 */
 	const isAValidMovement = (distanceX: number, distanceY: number) => {
 		console.log('disablePan.current :>> ', disablePan.current);
-		return Math.abs(distanceY)>5 && !disablePan.current;
+		return Math.abs(distanceY) > 5 && !disablePan.current;
 	};
 	const panResponder = useRef(
 		PanResponder.create({
@@ -223,7 +224,9 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		outputRange: [99, -99]
 	})
 
-	
+
+	console.log('monthPositionRef.current :>> ', monthPositionRef.current);
+
 	return (
 		<View style={[styles.containerWrapper]}>
 			<View style={[styles.weekNamesContainer]}>
