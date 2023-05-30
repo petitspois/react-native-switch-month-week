@@ -1,0 +1,7 @@
+android
+ios
+example
+.bundle
+.vscode
+node_modules
+npm-debug.log
