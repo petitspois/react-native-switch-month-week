@@ -8,7 +8,6 @@ import Month from '../Month';
 import moment from 'moment';
 import { UpdateSources } from '../../Constants/type';
 import CalendarContext from '../../Context';
-import type { ListRenderItemInfo, ViewToken } from '@shopify/flash-list';
 import type { MarkedDates } from '../type';
 import { ReturnStyles } from '../../Assets/style/types';
 

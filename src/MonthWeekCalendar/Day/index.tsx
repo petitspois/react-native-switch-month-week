@@ -36,6 +36,7 @@ const Day = React.memo((props: any) => {
 
     const itemInnerEdge = layout.itemHeight * 0.7
     const itemInnerStyle = {
+        overflow: 'hidden',
         width: itemInnerEdge,
         height: itemInnerEdge,
         borderRadius: 100,

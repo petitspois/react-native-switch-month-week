@@ -8,7 +8,6 @@ import Week from '../Week';
 import moment from 'moment';
 import { ITheme } from '../../Constants/type';
 import CalendarContext from '../../Context';
-import { ListRenderItemInfo, ViewToken } from '@shopify/flash-list';
 import type { MarkedDates } from '../type';
 import { ReturnStyles } from '../../Assets/style/types';
 
