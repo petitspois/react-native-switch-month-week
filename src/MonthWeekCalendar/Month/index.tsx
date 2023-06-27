@@ -18,7 +18,7 @@ const Month = React.memo((props: any) => {
             {
                 pageData.map((value, index) => {
                     return (
-                        <Day disabled={!sameMonth(date, value.toString('yyyy-MM-dd'))} key={index} date={value} {...otherProps} />
+                        <Day key={value} disabled={!sameMonth(date, value.toString('yyyy-MM-dd'))} date={value} {...otherProps} />
                     )
                 })
             }

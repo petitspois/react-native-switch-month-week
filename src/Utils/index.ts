@@ -130,6 +130,10 @@ export function sameWeek(date1: string, date2: string) {
 	return moment(date1).isSame(date2, 'week');
 }
 
+export const getCol = (date: string) => {
+	return moment(date).day()
+}
+
 export const getMonthRows = (dateStr: string) => {
 	// 周几
 	const day = moment(dateStr).startOf('month').day();

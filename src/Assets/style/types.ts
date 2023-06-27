@@ -114,9 +114,8 @@ export interface ReturnStyles {
     agendaItemInner: {
         flexDirection: 'row';
     },
-    agendaItemSubtitle: {
-        alignItems: 'center';
-        width: 40,
+    agendaItemBar: {
+       width: number;
     },
     agendaItemSubtitleWeek: {
         color: string;
@@ -135,6 +134,9 @@ export interface ReturnStyles {
         backgroundColor: string;
     },
     agendaItemDetailTitle: {
+        color: string;
+    },
+    agendaItemDetailExtra: {
         color: string;
     },
     agendaItemDetailDescription: {

@@ -1,20 +1,19 @@
-import { StyleSheet, Text, View, SectionList, SectionListProps, NativeSyntheticEvent, NativeScrollEvent, ViewToken, FlatList, TouchableWithoutFeedback } from 'react-native'
+import { StyleSheet, Text, View, Image, ScrollView, TouchableWithoutFeedback, LayoutChangeEvent } from 'react-native'
 import React, { useImperativeHandle, useRef, useCallback, useEffect, useContext, useMemo, useLayoutEffect, useState } from 'react'
 import { getYearMonthLocale, sameWeek, getRowAboveTheWeek, getRowInPage } from '../Utils';
 import { ReturnStyles } from '../Assets/style/types';
 import { debounce } from 'lodash';
 import CalendarContext from '../Context';
-import { UpdateSources } from '../Constants/type';
 import { useDidUpdate } from '../Hooks';
-// import { LargeList } from "react-native-largelist";
+import type { MarkedDates, MarkedData } from '../MonthWeekCalendar/type';
 
 export interface AgendaListProps {
-    dataSource: AgendaListDataSource[];
     styles: ReturnStyles;
     initDate: string;
-    updateMonthPosition: (rows: number) => void;
-    isEdge: (date: string) => { isStartEdge: boolean, isEndEdge: boolean }
+    markedDates: MarkedDates | undefined;
+    mode: 'week' | 'month'
     onAgendaItemPress?: (data: AgendaListDataSource) => void;
+    placeholderText?: string;
 }
 
 export interface AgendaListDataSource {
@@ -32,145 +31,100 @@ export interface AgendaListDataSource {
     value: string;
 }
 
-// const viewabilityConfig = {
-//     itemVisiblePercentThreshold: 6 // 50 means if 50% of the item is visible
-// };
 
 const AgendaList: React.FC<AgendaListProps> = (props) => {
-    const { dataSource, styles, initDate, updateMonthPosition, isEdge } = props;
-    const listData = [{ items: [...dataSource] }]
-    const listRef = useRef<any>()
-    const didScroll = useRef(false);
-    const sectionScroll = useRef(false);
-    const avoidDateUpdates = useRef(true);
+    const { styles, initDate, markedDates, mode, placeholderText } = props;
     const context = useContext(CalendarContext)
-    const { date, setDate, updateSource, setUpdateSource } = context;
+    const [dataSource, setDataSource] = useState<any[]>([])
+    const { date } = context;
 
 
     useDidUpdate(() => {
-        if (updateSource !== UpdateSources.LIST_DRAG) {
-            console.log('date :>> ', date);
-            scrollToSection(date);
-        }
+        getList(date)
     }, [date])
 
-    const updateMonthPositionHandler = (date: string) => {
-        if (isEdge(date).isEndEdge) {
-            updateMonthPosition(getRowInPage(date));
-        } else if (isEdge(date).isStartEdge) {
-            updateMonthPosition(0);
-        } else {
-            updateMonthPosition(getRowAboveTheWeek(date))
-        }
-    }
 
-    const _onViewableItemsChanged = useCallback((info: { viewableItems: ViewToken[], changed: ViewToken[] }) => {
-        if (info?.viewableItems && !sectionScroll.current && !avoidDateUpdates.current) {
-            const d = info?.viewableItems?.[0]?.item?.date;
-            if (typeof d === 'string') {
-                updateMonthPositionHandler(d);
-                setDate(d, UpdateSources.LIST_DRAG)
-            }
-        }
-    }, [dataSource])
-
-    const _onMomentumScrollEnd = () => {
-        sectionScroll.current = false;
-    }
-
-    const _onScrollBeginDrag = () => {
-        if (avoidDateUpdates.current) {
-            avoidDateUpdates.current = false;
-        }
-    }
-
-    const scrollToSection = useCallback(debounce((d: string) => {
-        sectionScroll.current = true;
-        const index = getIndexForDates(d);
-        listRef.current?.scrollToIndex?.({ index, animated: true })
-    }, 500, { leading: false, trailing: true }), [dataSource])
-
-    const getIndexForDates = (date: string) => {
-        const sameDayIndex = dataSource.findIndex(item => item.date === date);
-        const sameWeekIndex = dataSource.findIndex(item => sameWeek(item.date, date));
-        return sameDayIndex === -1 ? sameWeekIndex : sameDayIndex
-    }
-
-    const initIndex = useRef(getIndexForDates(initDate))
-
-
-    const _renderSectionHeader = (item: AgendaListDataSource) => {
-        return (
-            <View style={[styles.agendaHeaderContainer]}>
-                <Text style={styles.agendaHeaderText}>{item.value}</Text>
-            </View>
-        )
-    }
-
-    const _renderWeek = (item: AgendaListDataSource) => {
-        return (
-            <Text style={styles.agendaItemTitle}>{item.value}</Text>
-        )
-    }
-
-    const _onDayPress = (item: AgendaListDataSource) => {
-        if(props.onAgendaItemPress){
+    const _onDayPress = useCallback((item: any) => {
+        if (props.onAgendaItemPress) {
             props.onAgendaItemPress(item);
         }
-    }
+    }, [])
 
-    const _renderDay = (item: AgendaListDataSource) => {
+    const _renderDay = useCallback((item: MarkedData, idx: number) => {
         return (
-            <TouchableWithoutFeedback onPress={()=>_onDayPress(item)}>
-                <View style={styles.agendaItem}>
+            <TouchableWithoutFeedback key={idx} onPress={() => _onDayPress(item)}>
+                <View style={[styles.agendaItem, { marginVertical: 12, height: item.isAllDay ? 20 : 40 }]}>
                     <View style={styles.agendaItemInner}>
-                        <View style={styles.agendaItemSubtitle}>
-                            <Text style={styles.agendaItemSubtitleWeek}>{item.week}</Text>
-                            <Text style={styles.agendaItemSubtitleDay}>{item.day}</Text>
-                        </View>
+                        <View style={styles.agendaItemBar}></View>
                         <View style={styles.agendaItemDetail}>
-                            <Text style={styles.agendaItemDetailTitle}>{item?.data?.title}</Text>
-                            <Text style={styles.agendaItemDetailDescription}>{item?.data?.description}</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <Text style={styles.agendaItemDetailTitle}>{item?.title}</Text>
+                                <Text style={styles.agendaItemDetailExtra}>{item?.startTime}</Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <Text style={styles.agendaItemDetailDescription}>{item?.description}</Text>
+                                <Text style={styles.agendaItemDetailExtra}>{item?.endTime}</Text>
+                            </View>
                         </View>
                     </View>
                 </View>
             </TouchableWithoutFeedback>
         )
+    }, [])
+
+
+    const renderItems = () => {
+        return dataSource.map((item: MarkedData, idx: number) => {
+            return (
+                <View key={'item'+ idx}>
+                    {_renderDay(item, idx)}
+                    <View key={'line' + idx} style={{marginLeft: 12, width: '100%', height: StyleSheet.hairlineWidth, backgroundColor: '#ddd'}}></View>
+                </View>
+            ) 
+        })
+    }
+
+    const _ListEmptyComponent = () => {
+        return (
+            <View style={[{ flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
+                <Image source={require('../Assets/images/placeholder.png')} style={{ marginBottom: 16, width: 80, height: 80 }} />
+                <Text>{placeholderText ?? 'No events'}</Text>
+            </View>
+        )
     }
 
 
-    const renderItem = useCallback(({ item }: { item: AgendaListDataSource }) => {
-        switch (item.type) {
-            case 'month':
-                return <View style={[styles.agendaItemContainer,]}>{_renderSectionHeader(item)}</View>
-            case 'week':
-                return <View style={[styles.agendaItemContainer,]}>{_renderWeek(item)}</View>
-            case 'day':
-                return <View style={[styles.agendaItemContainer,]}>{_renderDay(item)}</View>
+    const getList = (date: string) => {
+        if (markedDates?.[date]?.data?.length) {
+            setDataSource(markedDates?.[date]?.data ?? [])
+        }else{
+            setDataSource([])
         }
-    }, [dataSource])
-  
+    }
 
+    useEffect(() => {
+        getList(initDate);
+    }, [])
 
-    console.log('dataSource :>> ', [{ items: dataSource }]);
     return (
         <View style={[styles.agendaContainer]}>
-    
-            <FlatList
-                ref={listRef}
-                data={dataSource}
-                bounces={false}
-                initialScrollIndex={initIndex.current}
-                keyExtractor={(item, index) => item.key}
-                renderItem={renderItem}
-                showsVerticalScrollIndicator={false}
-                getItemLayout={(data, index) => ({ length: 60, offset: 60 * index, index })}
-                onViewableItemsChanged={_onViewableItemsChanged}
-                onMomentumScrollEnd={_onMomentumScrollEnd}
-                onScrollBeginDrag={_onScrollBeginDrag}
-            />
+            {
+                dataSource.length ? 
+                <ScrollView 
+                    scrollEnabled={mode === 'week'}
+                    showsVerticalScrollIndicator={false}
+                    style={{flex:1, paddingHorizontal: 12}}
+                >
+                    {renderItems()}
+                </ScrollView> :
+                _ListEmptyComponent()
+            }
         </View>
     )
+
+
 }
 
-export default React.memo(AgendaList)
+export default React.memo(AgendaList, (prevProps, nextProps) => {
+    return prevProps.mode === nextProps.mode;
+})

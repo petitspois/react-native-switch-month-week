@@ -4,7 +4,7 @@ import { ReturnStyles } from './types';
 
 export const styleConstructor = (theme = {}) => {
     const appStyle = { ...defaultStyle, ...theme };
-    return StyleSheet.create<ReturnStyles>({
+    return StyleSheet.create<any>({
         containerWrapper: {
             flex: 1,
             backgroundColor: appStyle.containerBackgroundColor
@@ -74,7 +74,8 @@ export const styleConstructor = (theme = {}) => {
             width: appStyle.dotSize,
             height: appStyle.dotSize,
             borderRadius: 100,
-            backgroundColor: appStyle.dotBackgroundColor
+            backgroundColor: appStyle.dotBackgroundColor,
+            transform: [{ translateX: -appStyle.dotSize / 2 }],
         },
         center: {
             justifyContent: 'center',
@@ -111,9 +112,9 @@ export const styleConstructor = (theme = {}) => {
             fontSize: 24,
         },
         agendaItemContainer: {
-            paddingHorizontal: 18,
+            flex:1,
+            paddingHorizontal: 12,
             justifyContent: 'center',
-            height: 60,
             backgroundColor: appStyle.reservationBackgroundColor
         },
         agendaItemTitle: {
@@ -122,16 +123,16 @@ export const styleConstructor = (theme = {}) => {
         },
         agendaItem: {
             flex:1,
-            justifyContent: 'center',
         },
         agendaItemInner: {
             flexDirection: 'row',
-            height: 50,
+            flex:1,
         },
-        agendaItemSubtitle: {
-            justifyContent: 'center',
-            alignItems: 'flex-start',
-            width: 40,
+        agendaItemBar: {
+            width: 4,
+            height: '100%',
+            borderRadius: 4,
+            backgroundColor: appStyle.agendaItemTextColor,
         },
         agendaItemSubtitleWeek: {
             color: appStyle.buttonTextColor,
@@ -145,19 +146,19 @@ export const styleConstructor = (theme = {}) => {
         agendaItemDetail: {
             flex: 1,
             paddingHorizontal: 6,
-            paddingVertical: 4,
-            marginLeft: 12,
+            justifyContent: 'space-between',
             borderRadius: 4,
-            borderLeftWidth: 4,
-            borderLeftColor: appStyle.agendaItemTextColor,
-            backgroundColor: appStyle.agendaItemBackgroundColor,
         },
         agendaItemDetailTitle: {
-            color: appStyle.agendaItemTextColor,
+            color: appStyle.dayNameTextColor,
+            fontWeight: 'bold'
+        },
+        agendaItemDetailExtra: {
+            color: appStyle.dayNameTextColor,
         },
         agendaItemDetailDescription: {
             marginTop: 4,
-            color: appStyle.agendaItemTextColor,
+            color: appStyle.disabledButtonTextColor,
         }
     })
 };

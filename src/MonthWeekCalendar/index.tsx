@@ -16,14 +16,14 @@ const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const { calendarWidth, markedDates, theme, locale, customReservation, onAgendaItemPress } = props;
+	const { calendarWidth, markedDates, theme, locale, customReservation, noEventsText } = props;
 	const context = useContext(CalendarContext)
-	const { date, defaultDate } = context;
+	const { defaultDate } = context;
 	const initDate = defaultDate ?? moment().format(DATE_FORMAT);
 	const styles = useMemo(() => styleConstructor(theme), [theme]);
 	//var
 	const containerWidth = calendarWidth || windowWidth;
-	const itemWidth = containerWidth / 7;
+	const itemWidth = Math.floor(containerWidth / 7);
 	const itemHeight = containerWidth / 8;
 	const monthHeight = itemHeight * 6;
 	const monthHalfHeight = monthHeight / 2;
@@ -37,8 +37,8 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const disablePan = useRef<boolean>(false);
 	//state
 	const [monthDates, weekDates] = useMemo(() => generateDates(initDate), [initDate]);
-	const weekSections = useMemo(() => generateWeekSections(weekDates, locale, markedDates), [markedDates, weekDates, locale]);
 	const monthDatesMinMax = useMemo(() => [monthDates[0], monthDates[monthDates.length - 1]], [monthDates])
+	const [mode, setMode] = useState<'week'|'month'>('week')
 
 	const disablePanTimeRef = useRef<any>(null);
 	const handlerDisablePan = (disabled: boolean) => {
@@ -59,7 +59,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	}
 
 	const updateMonthPosition = (rows: number) => {
-		console.log('rows :>> ', rows);
 		monthPositionRef.current = rows * itemHeight;
 	}
 
@@ -102,8 +101,9 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		}).start((finish) => {
 			if (finish) {
 				modeRef.current = 'month'
-				reservationRef.current?.setNativeProps({ pointerEvents: 'box-only' })
-				cb && cb('month')
+				setMode('month')
+				reservationRef.current?.setNativeProps({ pointerEvents: 'auto' })
+				cb?.('month')
 			}
 		})
 	}
@@ -116,8 +116,9 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		}).start((finish) => {
 			if (finish) {
 				modeRef.current = 'week'
+				setMode('week')
 				reservationRef.current?.setNativeProps({ pointerEvents: 'box-none' })
-				cb && cb('week')
+				cb?.('week')
 			}
 		})
 	}
@@ -135,8 +136,8 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	}
 
 	const renderReservation = () => {
-		if (!!customReservation) return customReservation()
-		return !!weekSections.length && <AgendaList onAgendaItemPress={props.onAgendaItemPress} isEdge={isEdge} updateMonthPosition={updateMonthPosition} initDate={initDate} styles={styles} dataSource={weekSections} />
+		if (customReservation) return customReservation()
+		return <AgendaList placeholderText={noEventsText} onAgendaItemPress={props.onAgendaItemPress} mode={mode} initDate={initDate} markedDates={markedDates} styles={styles} />
 	}
 
 	const _panResponderMove = (dy: number) => {
@@ -155,7 +156,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	 *  TODO: month week area
 	 */
 	const isAValidMovement = (distanceX: number, distanceY: number) => {
-		console.log('disablePan.current :>> ', disablePan.current);
 		return Math.abs(distanceY) > 5 && !disablePan.current;
 	};
 	const panResponder = useRef(
@@ -224,8 +224,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		outputRange: [99, -99]
 	})
 
-
-	console.log('monthPositionRef.current :>> ', monthPositionRef.current);
 
 	return (
 		<View style={[styles.containerWrapper]}>

@@ -44,11 +44,16 @@ const Day = React.memo((props: any) => {
         const today = moment().format('YYYY-MM-DD');
         const dateStr = date.toString('yyyy-MM-dd');
         const edge = isEdge ? isEdge(dateStr).isEndEdge || isEdge(dateStr).isStartEdge : false;
-        return dateStr === current && (!disabled || edge) ?
-                    today == dateStr ? styles.selectedTodayButton : styles.selectedButton : undefined;
+        if (dateStr === current && (!disabled || edge)) {
+            if (today == dateStr) {
+                return styles.selectedTodayButton
+            } else {
+                return styles.selectedButton
+            }
+        }
+        return undefined
     }, [current, disabled, styles])
 
-    const dotSize = 4;
     const dotStyle = useMemo(() => {
         const dateStr = date.toString('yyyy-MM-dd');
         return !!markedDates?.[dateStr]?.marked ? styles.dot : undefined;
@@ -57,19 +62,23 @@ const Day = React.memo((props: any) => {
     const textStyle = useMemo(() => {
         const today = moment().format('YYYY-MM-DD');
         const dateStr = date.toString('yyyy-MM-dd');
-        return disabled ?
-            styles.disabledButtonText :
-            (today === dateStr && dateStr === current && !disabled) ? 
-                styles.selectedTodayButtonText :
-                today === dateStr ?
-                    styles.todayButtonText :
-                    styles.buttonText;
+
+        if (disabled) {
+            return styles.disabledButtonText;
+        } else if (today === dateStr && dateStr === current) {
+            return styles.selectedTodayButtonText;
+        } else if (today === dateStr) {
+            return styles.todayButtonText;
+        } else {
+            return styles.buttonText;
+        }
+
     }, [current, disabled, styles])
 
     return (
         <TouchableOpacity activeOpacity={1} onPress={_onDayPress}>
             <View style={[itemContainerStyle, styles.center]} >
-                <View style={[itemInnerStyle, styles.center, selectedDayStyle]}>
+                <View style={[styles.center, selectedDayStyle, itemInnerStyle]}>
                     <Text style={[styles.dayText, textStyle]}>{date.getDate()}</Text>
                     <View style={[dotStyle]}></View>
                 </View>

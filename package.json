@@ -1,6 +1,6 @@
 {
   "name": "react-native-switch-month-week",
-  "version": "0.0.8",
+  "version": "0.0.11",
   "description": "react native calendar with a week and month view",
   "main": "src/index.ts",
   "scripts": {
@@ -32,8 +32,8 @@
     "@shopify/flash-list": "^1.4.2",
     "lodash": "^4.17.15",
     "moment": "^2.29.4",
-    "react": "18.2.0",
-    "react-native": "0.71.2",
+    "recyclerlistview": "^3.0.5",
+    "react-native-big-list": "^1.6.1",
     "xdate": "^0.8.0"
   },
   "peerDependencies": {
@@ -58,6 +58,8 @@
     "jest": "^29.2.1",
     "metro-react-native-babel-preset": "0.73.7",
     "prettier": "^2.4.1",
+    "react": "18.2.0",
+    "react-native": "0.71.2",
     "react-test-renderer": "18.2.0",
     "typescript": "4.8.4"
   },

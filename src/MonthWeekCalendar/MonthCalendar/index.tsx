@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Animated } from 'react-native'
 import React, { useRef, useState, useCallback, useEffect, useMemo, useContext } from 'react'
 import InfiniteList from '../../InfiniteList'
-import { toMarkingFormat, sameMonth, getRowAboveTheWeek, getRowInPage } from '../../Utils';
+import { toMarkingFormat, sameMonth, getRowAboveTheWeek, getRowInPage, getCol } from '../../Utils';
 import { NUMBER_OF_PAGES, DATE_FORMAT } from '../../Constants';
 import { ITheme } from '../../Constants/type';
 import Month from '../Month';
@@ -39,26 +39,27 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 		date: context.date
 	}
 
-	const onPageChange = useCallback((page: ViewToken, _prevPage: ViewToken, { scrolledByUser }: any) => {
+	const onPageChange = useCallback((pageIndex: number, _prevPageIndex: number | undefined, { scrolledByUser }: any) => {
 		// TODO: 点击不同月份的日期，不需要执行对应-2的逻辑
 		if (
 			list.current.props.mode === 'month' &&
 			scrolledByUser
 		) {
 			updateMonthPosition(0)
-			context?.setDate(page.item, UpdateSources.MONTH_SCROLL)
+			context?.setDate(dataSource[pageIndex], UpdateSources.MONTH_SCROLL)
 		}
 	}, []);
 
 	const onDayPress = useCallback((newDate: string) => {
-		const rows = isEdge(newDate).isEndEdge ? getRowInPage(newDate) : isEdge(newDate).isStartEdge ? 0 : getRowAboveTheWeek(newDate);
-		updateMonthPosition(rows)
+		const row = isEdge(newDate).isEndEdge ? getRowInPage(newDate) : isEdge(newDate).isStartEdge ? 0 : getRowAboveTheWeek(newDate);
+		const col = getCol(newDate);
+		updateMonthPosition(row)
 		context?.setDate(newDate, UpdateSources.MONTH_DAY_PRESS);
 	}, [dataSource])
 
-	const renderItem = useCallback(({ item, index, target }: ListRenderItemInfo<string>) => {
+	const renderItem = useCallback((_type: any, item: string) => {
 		return (
-			<Month key={index} markedDates={markedDates} isEdge={isEdge} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
+			<Month key={item} markedDates={markedDates} isEdge={isEdge} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
 		)
 	}, [date, markedDates, otherProps?.styles]);
 
@@ -87,19 +88,10 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 			// TODO: 超过边界不需要处理
 			if (pageIndex !== -1) {
 				disablePanChange(true);
-				list.current?.scrollToIndex?.({ animated: true, index: pageIndex });
+				list.current?.scrollToIndex?.(pageIndex, false);
 			}
 		}
 
-
-		if(updateSource && UpdateSources.LIST_DRAG) {
-			const pageIndex = dataSource.findIndex(item => sameMonth(item, date))
-			// TODO: 超过边界不需要处理
-			if (pageIndex !== -1) {
-				disablePanChange(true);
-				list.current?.scrollToIndex?.({ animated: false, index: pageIndex });
-			}
-		}
 
 		/**
 		 *  TODO:-2
@@ -112,13 +104,12 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 			) {
 				disablePanChange(true);
 				const index = dataSource.findIndex(item => sameMonth(item, date))
-				list.current?.scrollToIndex?.({ animated: true, index });
+				list.current?.scrollToIndex?.(index, true);
 			}
 		}
 
 
 	}, [date, updateSource])
-
 
 	return (
 		<InfiniteList

@@ -46,7 +46,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 
 
 
-	const onPageChange = useCallback((page: ViewToken, prevPage: ViewToken, { scrolledByUser }: any) => {
+	const onPageChange = useCallback((pageIndex: number, _prevPageIndex: number | undefined, { scrolledByUser }: any) => {
 		if (
 			list.current.props.mode === 'week' &&
 			scrolledByUser
@@ -54,7 +54,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 			// 上一页选中的是星期几
 			const prevDay = prevWeek.current;
 			// 当前周第一天周日
-			const weekFirstDay = page.item;
+			const weekFirstDay = dataSource[pageIndex];
 			const weekCurrent = moment(weekFirstDay).add(prevDay, 'days').format(DATE_FORMAT);
 			const rows = getRowAboveTheWeek(weekCurrent)
 			if (isEdge(weekCurrent).isEndEdge) {
@@ -70,9 +70,9 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 	}, [date]);
 
 
-	const renderWeekItem = useCallback(({ item, index, target }: ListRenderItemInfo<string>) => {
+	const renderWeekItem = useCallback((_type: any, item: string) => {
 		return (
-			<Week key={index} markedDates={markedDates} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
+			<Week key={item} markedDates={markedDates} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
 		)
 	}, [date, markedDates, otherProps?.styles]);
 
@@ -114,17 +114,10 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 		) {
 			disablePanChange(true);
 			const index = dataSource.findIndex(item => sameWeek(item, date));
-			list.current?.scrollToIndex?.({ animated: true, index });
-		}
-
-		if(updateSource === UpdateSources.LIST_DRAG){
-			disablePanChange(true);
-			const index = dataSource.findIndex(item => sameWeek(item, date));
-			list.current?.scrollToIndex?.({ animated: false, index });
+			list.current?.scrollToIndex?.(index, false);
 		}
 		
 	}, [date, updateSource])
-
 
 
 	return (
