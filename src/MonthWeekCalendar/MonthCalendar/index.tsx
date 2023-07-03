@@ -1,11 +1,9 @@
-import { StyleSheet, Text, View, Animated } from 'react-native'
-import React, { useRef, useState, useCallback, useEffect, useMemo, useContext } from 'react'
+import { StyleSheet } from 'react-native'
+import React, { useRef, useCallback, useEffect, useContext } from 'react'
 import InfiniteList from '../../InfiniteList'
-import { toMarkingFormat, sameMonth, getRowAboveTheWeek, getRowInPage, getCol } from '../../Utils';
-import { NUMBER_OF_PAGES, DATE_FORMAT } from '../../Constants';
-import { ITheme } from '../../Constants/type';
+import { sameMonth, getRowAboveTheWeek, getRowInPage } from '../../Utils';
+import { NUMBER_OF_PAGES } from '../../Constants';
 import Month from '../Month';
-import moment from 'moment';
 import { UpdateSources } from '../../Constants/type';
 import CalendarContext from '../../Context';
 import type { MarkedDates } from '../type';
@@ -18,6 +16,7 @@ interface MonthCalendarProps {
 		itemWidth: number;
 		itemHeight: number;
 	},
+	firstDay?: number;
 	dataSource: string[];
 	markedDates: MarkedDates | undefined;
 	updateMonthPosition: (rows: number) => void;
@@ -29,7 +28,7 @@ interface MonthCalendarProps {
 
 const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 
-	const { isEdge, initDate, layout, updateMonthPosition, dataSource, markedDates, disablePanChange, ...otherProps } = props;
+	const { isEdge, initDate, layout, updateMonthPosition, dataSource, markedDates, disablePanChange, firstDay, ...otherProps } = props;
 	const context = useContext(CalendarContext)
 	const { date, prevDate, updateSource } = context;
 	const list = useRef<any>();
@@ -50,15 +49,14 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 	}, []);
 
 	const onDayPress = useCallback((newDate: string) => {
-		const row = isEdge(newDate).isEndEdge ? getRowInPage(newDate) : isEdge(newDate).isStartEdge ? 0 : getRowAboveTheWeek(newDate);
-		const col = getCol(newDate);
+		const row = isEdge(newDate).isEndEdge ? getRowInPage(newDate, firstDay) : isEdge(newDate).isStartEdge ? 0 : getRowAboveTheWeek(newDate, firstDay);
 		updateMonthPosition(row)
 		context?.setDate(newDate, UpdateSources.MONTH_DAY_PRESS);
 	}, [dataSource])
 
 	const renderItem = useCallback((_type: any, item: string) => {
 		return (
-			<Month key={item} markedDates={markedDates} isEdge={isEdge} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
+			<Month key={item} firstDay={firstDay} markedDates={markedDates} isEdge={isEdge} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
 		)
 	}, [date, markedDates, otherProps?.styles]);
 

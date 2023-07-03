@@ -1,6 +1,6 @@
 {
   "name": "react-native-switch-month-week",
-  "version": "0.0.15",
+  "version": "0.1.0",
   "description": "react native calendar with a week and month view",
   "main": "src/index.ts",
   "scripts": {
@@ -32,7 +32,6 @@
     "lodash": "^4.17.15",
     "moment": "^2.29.4",
     "recyclerlistview": "^3.0.5",
-    "react-native-big-list": "^1.6.1",
     "xdate": "^0.8.0"
   },
   "peerDependencies": {

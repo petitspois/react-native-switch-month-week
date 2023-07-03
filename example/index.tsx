@@ -150,7 +150,8 @@ const Example = () => {
                     setCurrentMonth(date)
                 }}>
                 <MonthWeekCalendar
-                    locale={'tw'}
+                    firstDay={1}
+                    locale={'en'}
                     theme={theme}
                     markedDates={markedDates}
                     onAgendaItemPress={(data) => {

@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View, Animated } from 'react-native'
 import React, { useRef, useState, useCallback, useEffect, useMemo, useContext } from 'react'
 import InfiniteList from '../../InfiniteList'
-import { toMarkingFormat, sameWeek, sameMonth, getRowAboveTheWeek, getRowInPage } from '../../Utils';
-import { NUMBER_OF_PAGES, DATE_FORMAT } from '../../Constants';
+import {  sameWeek,  getRowAboveTheWeek, getRowInPage } from '../../Utils';
+import { DATE_FORMAT } from '../../Constants';
 import { UpdateSources } from '../../Constants/type';
 import Week from '../Week';
 import moment from 'moment';
@@ -14,6 +14,7 @@ import { ReturnStyles } from '../../Assets/style/types';
 
 interface WeekCalendarProps {
 	initDate: string;
+	firstDay: number;
 	layout: {
 		containerWidth: number;
 		itemWidth: number;
@@ -31,13 +32,12 @@ interface WeekCalendarProps {
 
 const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 
-	const { initDate, layout, updateMonthPosition, dataSource, isEdge, markedDates, disablePanChange, ...otherProps } = props;
+	const { initDate, layout, updateMonthPosition, dataSource, isEdge, markedDates, disablePanChange, firstDay, ...otherProps } = props;
 	const context = useContext(CalendarContext)
 	const { date, prevDate, updateSource } = context;
-	const initialIndex = useMemo(() => dataSource.findIndex(item => sameWeek(item, initDate)), [])
+	const initialIndex = useMemo(() => dataSource.findIndex(item => sameWeek(item, initDate, firstDay)), [])
 	const list = useRef<any>();
 	const prevWeek = useRef<number>(moment(date).day());
-
 	// state
 	const extraWeekData = {
 		date: context.date,
@@ -55,13 +55,12 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 			// 当前周第一天周日
 			const weekFirstDay = dataSource[pageIndex];
 			const weekCurrent = moment(weekFirstDay).add(prevDay, 'days').format(DATE_FORMAT);
-			const rows = getRowAboveTheWeek(weekCurrent)
+			const rows = getRowAboveTheWeek(weekCurrent, firstDay)
 			if (isEdge(weekCurrent).isEndEdge) {
-				updateMonthPosition(getRowInPage(weekCurrent));
+				updateMonthPosition(getRowInPage(weekCurrent, firstDay));
 			} else if (isEdge(weekCurrent).isStartEdge) {
 				updateMonthPosition(0);
-			}
-			else {
+			}else {
 				updateMonthPosition(rows)
 			}
 			context?.setDate(weekCurrent, UpdateSources.WEEK_SCROLL)
@@ -71,7 +70,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 
 	const renderWeekItem = useCallback((_type: any, item: string) => {
 		return (
-			<Week key={item} markedDates={markedDates} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
+			<Week key={item} firstDay={firstDay} markedDates={markedDates} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
 		)
 	}, [date, markedDates, otherProps?.styles]);
 
@@ -93,11 +92,11 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 
 	const updateMonthPositionHandler = (date: string) => {
 		if (isEdge(date).isEndEdge) {
-			updateMonthPosition(getRowInPage(date));
+			updateMonthPosition(getRowInPage(date, firstDay));
 		} else if (isEdge(date).isStartEdge) {
 			updateMonthPosition(0);
 		} else {
-			updateMonthPosition(getRowAboveTheWeek(date))
+			updateMonthPosition(getRowAboveTheWeek(date, firstDay))
 		}
 	}
 
@@ -105,14 +104,14 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 	useEffect(() => {
 		// TODO: 根据月点击的日期，更新周的位置
 		if (
-			!sameWeek(prevDate, date) &&
+			!sameWeek(prevDate, date, firstDay) &&
 			(
 				updateSource === UpdateSources.MONTH_SCROLL ||
 				updateSource === UpdateSources.MONTH_DAY_PRESS
 			)
 		) {
 			disablePanChange(true);
-			const index = dataSource.findIndex(item => sameWeek(item, date));
+			const index = dataSource.findIndex(item => sameWeek(item, date, firstDay));
 			list.current?.scrollToIndex?.(index, false);
 		}
 		

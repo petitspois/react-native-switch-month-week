@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOp
 import CalendarContext from '../Context';
 import WeekDaysNames from './WeekDaysNames';
 import constants from '../Utils/constants';
-import { getMonthRows, getRowAboveTheWeek, generateDates, generateWeekSections, sameWeek } from '../Utils';
+import { getRowAboveTheWeek, generateDates} from '../Utils';
 import { MonthWeekCalendarProps, Mode } from './type'
 import { DATE_FORMAT } from '../Constants';
 import WeekCalendar from './WeekCalendar';
@@ -16,11 +16,12 @@ const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const { calendarWidth, markedDates, theme, locale, customReservation, noEventsText } = props;
+	const { calendarWidth, markedDates, theme, locale, customReservation, noEventsText, CalendarContainerView, firstDay=0, modeType = 'Both', isReservation = true, isKnob = true } = props;
 	const context = useContext(CalendarContext)
 	const { defaultDate } = context;
 	const initDate = defaultDate ?? moment().format(DATE_FORMAT);
 	const styles = useMemo(() => styleConstructor(theme), [theme]);
+	const CalendarContainerViewWrap = CalendarContainerView ?? View;
 	//var
 	const containerWidth = calendarWidth || windowWidth;
 	const itemWidth = Math.floor(containerWidth / 7);
@@ -28,17 +29,16 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const monthHeight = itemHeight * 6;
 	const monthHalfHeight = monthHeight / 2;
 	//ref
-	const AgendaRef = useRef<any>()
-	const animatedContainerHeight = useRef(new Animated.Value(itemHeight));
+	const animatedContainerHeight = useRef(new Animated.Value(modeType === 'Month' ? monthHeight : itemHeight));
 	const pressedHeightRef = useRef(itemHeight);
-	const monthPositionRef = useRef<number>((getRowAboveTheWeek(initDate)) * itemHeight)
+	const monthPositionRef = useRef<number>((getRowAboveTheWeek(initDate, firstDay)) * itemHeight)
 	const modeRef = useRef<Mode>('week');
 	const reservationRef = useRef<View>(null);
 	const disablePan = useRef<boolean>(false);
 	//state
-	const [monthDates, weekDates] = useMemo(() => generateDates(initDate), [initDate]);
+	const [monthDates, weekDates] = useMemo(() => generateDates(initDate, firstDay), [initDate, firstDay]);
 	const monthDatesMinMax = useMemo(() => [monthDates[0], monthDates[monthDates.length - 1]], [monthDates])
-	const [mode, setMode] = useState<'week'|'month'>('week')
+	const [mode, setMode] = useState<'week' | 'month'>('week')
 
 	const disablePanTimeRef = useRef<any>(null);
 	const handlerDisablePan = (disabled: boolean) => {
@@ -136,7 +136,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	}
 
 	const renderReservation = () => {
-		if (customReservation) return customReservation()
+		if (customReservation) return customReservation(mode)
 		return <AgendaList placeholderText={noEventsText} onAgendaItemPress={props.onAgendaItemPress} mode={mode} initDate={initDate} markedDates={markedDates} styles={styles} />
 	}
 
@@ -161,6 +161,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const panResponder = useRef(
 		PanResponder.create({
 			onMoveShouldSetPanResponder: (evt, gestureState) => {
+				if(modeType === 'Month' || modeType === 'Week') return false;
 				return isAValidMovement(gestureState.dx, gestureState.dy)
 			},
 			onPanResponderGrant: (evt, gestureState) => {
@@ -224,55 +225,71 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		outputRange: [99, -99]
 	})
 
-
 	return (
 		<View style={[styles.containerWrapper]}>
 			<View style={[styles.weekNamesContainer]}>
-				<WeekDaysNames locale={locale} styles={styles} layout={{ containerWidth, itemWidth, itemHeight }} dayNames={constants.dayNamesShort} firstDay={0} />
+				<WeekDaysNames 
+					firstDay={firstDay} 
+					locale={locale} 
+					styles={styles} 
+					layout={{ containerWidth, itemWidth, itemHeight }} 
+					/>
 			</View>
-			<View {...panResponder.panHandlers} style={[styles.calendar, styles.containerWrapperShadow]}>
-				<View>
-					<Animated.View style={[{ overflow: 'hidden', height: animatedContainerHeight.current }]}>
-						<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
-							<MonthCalendar
-								initDate={initDate}
-								updateMonthPosition={updateMonthPosition}
-								disablePanChange={handlerDisablePan}
-								layout={{ containerWidth, itemWidth, itemHeight }}
-								dataSource={monthDates}
-								isEdge={isEdge}
-								markedDates={markedDates}
-								styles={styles}
-							/>
-						</Animated.View>
-					</Animated.View>
-					<Animated.View
-						style={{
-							position: 'absolute',
-							top: weekPositionY,
-							left: 0,
-							zIndex: weekZIndex,
-							width: containerWidth,
-							height: itemWidth
-						}}
-					>
-						<WeekCalendar
-							initDate={initDate}
-							updateMonthPosition={updateMonthPosition}
-							disablePanChange={handlerDisablePan}
-							layout={{ containerWidth, itemWidth, itemHeight }}
-							dataSource={weekDates}
-							markedDates={markedDates}
-							isEdge={isEdge}
-							styles={styles}
-						/>
-					</Animated.View>
+			<CalendarContainerViewWrap>
+				<View {...panResponder.panHandlers} style={[styles.calendar, styles.containerWrapperShadow]}>
+					<View>
+						{
+							(modeType === 'Both' || modeType === 'Month') &&
+							<Animated.View style={[{ overflow: 'hidden', height: animatedContainerHeight.current }]}>
+								<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
+									<MonthCalendar
+										initDate={initDate}
+										firstDay={firstDay} 
+										updateMonthPosition={updateMonthPosition}
+										disablePanChange={handlerDisablePan}
+										layout={{ containerWidth, itemWidth, itemHeight }}
+										dataSource={monthDates}
+										isEdge={isEdge}
+										markedDates={markedDates}
+										styles={styles}
+									/>
+								</Animated.View>
+							</Animated.View>
+						}
+						{
+							(modeType === 'Both' || modeType === 'Week') &&
+							<Animated.View
+								style={{
+									position: modeType === 'Week' ? 'relative' : 'absolute',
+									top: modeType === 'Week' ? 0 : weekPositionY,
+									left: 0,
+									zIndex: weekZIndex,
+									width: containerWidth,
+									height: itemWidth,
+								}}
+							>
+								<WeekCalendar
+									initDate={initDate}
+									firstDay={firstDay}
+									updateMonthPosition={updateMonthPosition}
+									disablePanChange={handlerDisablePan}
+									layout={{ containerWidth, itemWidth, itemHeight }}
+									dataSource={weekDates}
+									markedDates={markedDates}
+									isEdge={isEdge}
+									styles={styles}
+								/>
+							</Animated.View>}
+					</View>
+					{isKnob && renderKnob()}
 				</View>
-				{renderKnob()}
-			</View>
-			<View ref={reservationRef} style={[styles.reservationContainer]} {...reservationPanResponder.panHandlers} >
-				{renderReservation()}
-			</View>
+			</CalendarContainerViewWrap>
+			{
+				isReservation &&
+				<View ref={reservationRef} style={[styles.reservationContainer]} {...reservationPanResponder.panHandlers} >
+					{renderReservation()}
+				</View>
+			}
 		</View>
 	);
 };

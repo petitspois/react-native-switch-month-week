@@ -9,9 +9,9 @@ const areEqual = (prevProps, nextProps) => {
 }
 
 const Week = React.memo((props: any) => {
-    const { date, containerWidth, ...otherProps } = props;  
+    const { date, containerWidth, firstDay, ...otherProps } = props;  
 
-    const pageData = getWeekDates(date, 0, null) ?? []
+    const pageData = getWeekDates(date, firstDay, null) ?? []
     
     return (
         <View style={[otherProps.styles.weekContainer, { width: containerWidth}]}>

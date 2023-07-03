@@ -1,6 +1,6 @@
 import XDate from 'xdate'
 import moment from 'moment';
-import { DATE_FORMAT, NUMBER_OF_PAGES, dayNamesFormatCN, dayNamesFormatHK, dayNamesFormatTW } from '../Constants';
+import { DATE_FORMAT, NUMBER_OF_PAGES, dayNamesFormatCN, dayNamesFormatHK, dayNamesFormatTW, DayNamesShort } from '../Constants';
 import type { Locale } from '../Constants/type';
 import type { MarkedDates } from '../MonthWeekCalendar/type';
 import _ from 'lodash';
@@ -53,63 +53,22 @@ export const getRangeWeekLocale = (date: string, locale: Locale) => {
 	}
 }
 
-export const getWeekLocale = (date: string, locale: Locale) => {
-	const d = moment(date);
-	switch (locale) {
-		case 'en':
-			return d.format('ddd');
-		case 'cn':
-			return dayNamesFormatCN[d.day()];
-		case 'hk':
-			return dayNamesFormatHK[d.day()];
-		case 'tw':
-			return dayNamesFormatTW[d.day()];
-		default:
-			return '';
-	}
-};
 
-export const getSameWeekForMarkedDates = (markedDates: MarkedDates, date: string, locale: Locale) => {
-	const markedDatesKeys = Object.keys(markedDates);
-	const sameWeekMarkedDates = markedDatesKeys.filter((key) => {
-		return moment(key).isSame(date, 'week')
-	})
-	return sameWeekMarkedDates.map(item => ({ ...markedDates[item], date: item, week: getWeekLocale(item, locale), day: moment(item).date() }));
-}
-
-
-
-export const generateWeekSections = (weekArray: string[], locale: Locale = 'en', markedDates?: MarkedDates,) => {
-	let weekSections: any[] = weekArray.reduce((accumulator: any[], currentValue: string, currentIndex: number, origin: string[]) => {
-		let sections: any = accumulator;
-		const isSameMonth = currentIndex ? moment(currentValue).isSame(origin[currentIndex - 1], 'month') : false;
-		if (!isSameMonth) {
-			sections.push({ key: 'month_' + currentIndex, date: moment(currentValue).startOf('M').format(DATE_FORMAT), type: 'month', value: getYearMonthLocale(currentValue, locale) })
-		}
-		sections.push(
-			{ key: 'week_' + currentIndex, date: currentValue, type: 'week', value: getRangeWeekLocale(currentValue, locale) }
-		)
-		getSameWeekForMarkedDates(markedDates || {}, currentValue, locale).forEach((item, idx) => {
-			sections.push({ ...item, key: `day_${currentIndex}_${idx}`, type: 'day' })
-		})
-		return sections;
-	}, []);
-	return weekSections;
-}
-
-
-
-export const generateDates = (date: string, numberOfPages: number = NUMBER_OF_PAGES) => {
-	const d = moment(date).subtract(numberOfPages, 'month').startOf('month');
+export const generateDates = (date: string, firstDay: number = 0) => {
+	const d = moment(date).subtract(NUMBER_OF_PAGES, 'month').startOf('month');
 	const array: string[] = [];
 	const weekArray: string[] = []
-	for (let index = 0; index < numberOfPages * 2 + 1; index++) {
+	for (let index = 0; index < NUMBER_OF_PAGES * 2 + 1; index++) {
 		const newDate = d.add(index > 0 ? 1 : 0, 'month').format('YYYY-MM-DD')
 		array.push(newDate)
 	}
+
 	// week
-	const week = moment(array[0]).day();
-	const startWeek: any = moment(array[0]).subtract(week, 'day')
+	let dayOfTheWeek = moment(array[0]).day();
+	if (dayOfTheWeek < firstDay && firstDay > 0) {
+		dayOfTheWeek = 7 + dayOfTheWeek;
+	}
+	const startWeek: any = moment(array[0]).subtract(Math.abs(firstDay - dayOfTheWeek), 'day')
 	const endWeek: any = moment(array[array.length - 1])
 	const weekLength = endWeek.diff(startWeek, 'week') + 6;
 	for (let index = 0; index < weekLength; index++) {
@@ -126,8 +85,12 @@ export function sameMonth(date1: string, date2: string) {
 	return moment(date1).isSame(date2, 'month');
 }
 
-export function sameWeek(date1: string, date2: string) {
-	return moment(date1).isSame(date2, 'week');
+
+export function sameWeek(a: string, b: string, firstDayOfWeek: number = 0) {
+	const weekDates = getWeekDates(a, firstDayOfWeek, 'yyyy-MM-dd');
+	const element = weekDates instanceof XDate ? new XDate(b) : b;
+	console.log('weekDates :>> ', weekDates);
+	return weekDates?.includes(element);
 }
 
 export const getCol = (date: string) => {
@@ -141,19 +104,27 @@ export const getMonthRows = (dateStr: string) => {
 	return Math.ceil((day + endDay) / 7)
 }
 
-export const getRowAboveTheWeek = (dateStr: string) => {
+export const beforeDayOfWeek = (dayOfTheWeek: number, firstDayOfWeek: number) => {
+	if (dayOfTheWeek < firstDayOfWeek && firstDayOfWeek > 0) {
+		dayOfTheWeek = 7 + dayOfTheWeek;
+	}
+	return Math.abs(firstDayOfWeek - dayOfTheWeek);
+}
+
+export const getRowAboveTheWeek = (dateStr: string, firstDay: number = 0) => {
 	const day = moment(dateStr).startOf('month').day();
+	const beforeDay = beforeDayOfWeek(day, firstDay)
 	const endDay = moment(dateStr).date();
-	return Math.ceil((day + endDay) / 7) - 1;
+	return Math.ceil((beforeDay + endDay) / 7) - 1;
 }
 
-export const getRowPrevMonthLastDay = (dateStr: string) => {
+export const getRowPrevMonthLastDay = (dateStr: string, firstDay: number = 0) => {
 	const day = moment(dateStr).subtract(1, 'month').endOf('month').format(DATE_FORMAT)
-	return getRowAboveTheWeek(day)
+	return getRowAboveTheWeek(day, firstDay)
 }
 
-export const getRowInPage = (dateStr: string) => {
-	return getRowPrevMonthLastDay(dateStr) + getRowAboveTheWeek(dateStr)
+export const getRowInPage = (dateStr: string, firstDay: number = 0) => {
+	return getRowPrevMonthLastDay(dateStr, firstDay) + getRowAboveTheWeek(dateStr, firstDay)
 }
 
 export function sameDate(a, b) {
@@ -215,8 +186,8 @@ export function month(date) {
 	const lastDay = new XDate(year, month, days, 0, 0, 0, true);
 	return fromTo(firstDay, lastDay);
 }
-export function weekDayNames(firstDayOfWeek = 0) {
-	let weekDaysNames = getLocale().dayNamesShort;
+export function weekDayNames(firstDayOfWeek = 0, locale = 'en') {
+	let weekDaysNames = DayNamesShort[locale as Locale];
 	const dayShift = firstDayOfWeek % 7;
 	if (dayShift) {
 		weekDaysNames = weekDaysNames.slice(dayShift).concat(weekDaysNames.slice(0, dayShift));
@@ -230,10 +201,11 @@ export function getMonthDates(date: string, firstDayOfWeek = 0, showSixWeeks = f
 	//days [1-31]
 	const d = new XDate(date);
 	const days = month(d);
-	let before = [];
-	let after = [];
+	let before: any = [];
+	let after: any = [];
 	const fdow = (7 + firstDayOfWeek) % 7 || 7;
 	const ldow = (fdow + 6) % 7;
+
 	firstDayOfWeek = firstDayOfWeek || 0;
 	const from = days[0].clone();
 	const daysBefore = from.getDay();
@@ -248,7 +220,7 @@ export function getMonthDates(date: string, firstDayOfWeek = 0, showSixWeeks = f
 	}
 	const daysForSixWeeks = (daysBefore + days.length) / 6 >= 6;
 
-	if (showSixWeeks && !daysForSixWeeks) {
+	if (showSixWeeks) {
 		to.addDays(7);
 		if (daysBefore + days.length === 28) {
 			to.addDays(7);

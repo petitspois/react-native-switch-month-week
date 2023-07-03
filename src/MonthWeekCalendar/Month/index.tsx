@@ -10,8 +10,8 @@ const areEqual = (prevProps, nextProps) => {
 }
 
 const Month = React.memo((props: any) => {
-    const { date, containerWidth, ...otherProps } = props;
-    const pageData = getMonthDates(date, 0, true) ?? []
+    const { date, containerWidth, firstDay, ...otherProps } = props;
+    const pageData = getMonthDates(date, firstDay, true) ?? []
     
     return (
         <View style={[otherProps.styles.monthContainer, { width: containerWidth }]}>

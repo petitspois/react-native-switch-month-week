@@ -1,7 +1,7 @@
 import { ViewStyle, TextStyle } from 'react-native';
 
 
-export type Locale = 'cn' | 'en' | 'hk' | 'tw';
+export type Locale = 'cn' | 'en' | 'hk' | 'tw' | 'id';
 export interface ITheme {
     containerBackgroundColor:   string;
     calendarBackgroundColor: string;

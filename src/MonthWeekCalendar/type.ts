@@ -17,13 +17,18 @@ export interface MarkedDates {
     }
 }
 export interface MonthWeekCalendarProps {
+    firstDay?: number;
+    isKnob: boolean;
+    modeType: 'Both' | 'Week' | 'Month';
     locale: 'cn' | 'hk' | 'en' | 'tw';
     calendarWidth?: number;
     markedDates?: MarkedDates;
     theme?: Partial<ITheme>;
-    customReservation?: () => JSX.Element | JSX.Element[] | null;
+    isReservation: boolean;
+    customReservation?: (mode: 'week' | 'month') => JSX.Element | JSX.Element[] | null;
     onAgendaItemPress?: (data: AgendaListDataSource) => void;
     noEventsText?: string;
+    CalendarContainerView?: React.ComponentType;
 }
 
 export type Mode = 'week' | 'month';

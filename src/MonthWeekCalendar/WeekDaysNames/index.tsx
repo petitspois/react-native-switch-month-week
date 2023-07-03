@@ -2,11 +2,12 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { weekDayNames } from '../../Utils';
 import { WeekDaysNamesProps } from './type'
-import constants from '../../Utils/constants';
-import { DayNamesShort } from '../../Constants';
 
 const { width: windowWith } = Dimensions.get('window')
 
+// const areEqual = (prevProps: WeekDaysNamesProps, nextProps: WeekDaysNamesProps) => {
+// 	return prevProps.firstDay ===;
+// }
 
 const WeekDaysNames = React.memo<WeekDaysNamesProps>(({
 	firstDay = 0,
@@ -15,9 +16,8 @@ const WeekDaysNames = React.memo<WeekDaysNamesProps>(({
 	locale = 'en',
 }): React.ReactElement[] | any => {
 
-	const dayNames = useMemo(() => DayNamesShort[locale], [locale])
-
-	return dayNames.map((day, index) => {
+	const dayNames = useMemo(() => weekDayNames(firstDay, locale), [locale, firstDay])
+	return dayNames.map((day) => {
 		return (
 			<View style={[style.dayNamesItemContainer, { width: layout.itemWidth }]} key={day}>
 				<Text allowFontScaling={false} style={[style.dayNamesItem, styles?.weekNamesText]} numberOfLines={1} accessibilityLabel={''}>{day}</Text>

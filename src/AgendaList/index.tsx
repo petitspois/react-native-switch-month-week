@@ -1,8 +1,6 @@
 import { StyleSheet, Text, View, Image, ScrollView, TouchableWithoutFeedback, LayoutChangeEvent } from 'react-native'
 import React, { useImperativeHandle, useRef, useCallback, useEffect, useContext, useMemo, useLayoutEffect, useState } from 'react'
-import { getYearMonthLocale, sameWeek, getRowAboveTheWeek, getRowInPage } from '../Utils';
 import { ReturnStyles } from '../Assets/style/types';
-import { debounce } from 'lodash';
 import CalendarContext from '../Context';
 import { useDidUpdate } from '../Hooks';
 import type { MarkedDates, MarkedData } from '../MonthWeekCalendar/type';
