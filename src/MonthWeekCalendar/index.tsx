@@ -16,7 +16,7 @@ const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const { calendarWidth, markedDates, theme, locale, customReservation, noEventsText, CalendarContainerView, firstDay=0, modeType = 'Both', isReservation = true, isKnob = true } = props;
+	const { calendarWidth, markedDates, theme, locale, customReservation, noEventsText, CalendarContainerView, firstDay=0, modeType = 'Both', isReservation = true, isKnob = true, defaultOpenMode='Week' } = props;
 	const context = useContext(CalendarContext)
 	const { defaultDate } = context;
 	const initDate = defaultDate ?? moment().format(DATE_FORMAT);
@@ -224,6 +224,15 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		inputRange: [itemHeight, monthHeight],
 		outputRange: [99, -99]
 	})
+
+	useEffect(() => {
+		if(defaultOpenMode === 'Month'){
+			setTimeout(() => {
+				openCalendar();
+			}, 1000);
+		}
+	}, [])
+	
 
 	return (
 		<View style={[styles.containerWrapper]}>

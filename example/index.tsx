@@ -150,6 +150,7 @@ const Example = () => {
                     setCurrentMonth(date)
                 }}>
                 <MonthWeekCalendar
+                    defaultOpenMode="Month"
                     firstDay={1}
                     locale={'en'}
                     theme={theme}

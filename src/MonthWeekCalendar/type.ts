@@ -17,6 +17,7 @@ export interface MarkedDates {
     }
 }
 export interface MonthWeekCalendarProps {
+    defaultOpenMode?: 'Week' | 'Month'
     firstDay?: number;
     isKnob: boolean;
     modeType: 'Both' | 'Week' | 'Month';
