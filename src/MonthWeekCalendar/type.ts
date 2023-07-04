@@ -1,3 +1,4 @@
+import type { StyleProp, ViewStyle } from 'react-native';
 import type { ITheme } from '../Constants/type';
 import type { AgendaListDataSource } from '../AgendaList';
 
@@ -30,6 +31,7 @@ export interface MonthWeekCalendarProps {
     onAgendaItemPress?: (data: AgendaListDataSource) => void;
     noEventsText?: string;
     CalendarContainerView?: React.ComponentType;
+    containerWrapperStyle?: StyleProp<ViewStyle>;
 }
 
 export type Mode = 'week' | 'month';

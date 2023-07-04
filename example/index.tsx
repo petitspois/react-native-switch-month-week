@@ -150,6 +150,7 @@ const Example = () => {
                     setCurrentMonth(date)
                 }}>
                 <MonthWeekCalendar
+                    CalendarContainerView={({children})=> <View style={{backgroundColor: 'purple'}} >{children}</View>}
                     defaultOpenMode="Month"
                     firstDay={1}
                     locale={'en'}
