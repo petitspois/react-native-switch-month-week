@@ -1,7 +1,7 @@
 import type { ITheme } from './type';
 
-// export const NUMBER_OF_PAGES = 12 * 10;
-export const NUMBER_OF_PAGES = 1;
+export const NUMBER_OF_PAGES = 12 * 10;
+// export const NUMBER_OF_PAGES = 1;
 export const DATE_FORMAT = 'YYYY-MM-DD'
 const dayNamesShort_cn = ['日','一', '二', '三', '四', '五', '六']
 const dayNamesShort_en = ['Sun','Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
