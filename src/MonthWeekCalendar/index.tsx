@@ -280,7 +280,6 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 									zIndex: weekZIndex,
 									width: containerWidth,
 									height: itemWidth,
-									backgroundColor: 'pink'
 								}}
 							>
 								<WeekCalendar
