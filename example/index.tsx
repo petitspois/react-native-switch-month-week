@@ -1,16 +1,19 @@
 import { StyleSheet, Text, View, SafeAreaView } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { MonthWeekCalendar, MonthWeekCalendarProvider } from '../src';
 import moment from 'moment';
 
 
 const Example = () => {
+    const [, updateState] = useState<any>();
+	const forceUpdate = useCallback(() => updateState({}), []);
     const [theme, setTheme] = useState<any>({
         todayTextColor: '#3CA0AE',
         selectedTodayButtonBackgroundColor: '#3CA0AE',
         dotBackgroundColor: '#3CA0AE',
         agendaItemTextColor: '#3CA0AE',
     })
+    const [firstDay, setFirstDay] = useState(0)
     const [date, setDate] = useState('2023-04-13')
     const [currentMonth, setCurrentMonth] = useState<string>(moment().startOf('month').format('YYYY-MM-DD'))
     const [markedDates, setMarkedDates] = useState({
@@ -123,6 +126,7 @@ const Example = () => {
     })
 
     useEffect(() => {
+        
         // setTimeout(() => {
         //     setTheme(
         //         { 
@@ -136,6 +140,13 @@ const Example = () => {
         //     )
         // }, 4000);
 
+    
+        // setTimeout(()=>{
+        //     setFirstDay(6)
+        //     forceUpdate()
+        // }, 6000)
+
+       
     }, [])
 
 
@@ -150,10 +161,8 @@ const Example = () => {
                     setCurrentMonth(date)
                 }}>
                 <MonthWeekCalendar
-                    CalendarContainerView={({children})=> <View style={{backgroundColor: 'purple'}} >{children}</View>}
-                    defaultOpenMode="Month"
-                    firstDay={1}
-                    locale={'en'}
+                    firstDay={firstDay}
+                    locale={'cn'}
                     theme={theme}
                     markedDates={markedDates}
                     onAgendaItemPress={(data) => {

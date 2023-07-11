@@ -89,7 +89,6 @@ export function sameMonth(date1: string, date2: string) {
 export function sameWeek(a: string, b: string, firstDayOfWeek: number = 0) {
 	const weekDates = getWeekDates(a, firstDayOfWeek, 'yyyy-MM-dd');
 	const element = weekDates instanceof XDate ? new XDate(b) : b;
-	console.log('weekDates :>> ', weekDates);
 	return weekDates?.includes(element);
 }
 

@@ -34,7 +34,8 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 	const list = useRef<any>();
 	// state
 	const extraData = {
-		date: context.date
+		date: context.date,
+		firstDay
 	}
 
 	const onPageChange = useCallback((pageIndex: number, _prevPageIndex: number | undefined, { scrolledByUser }: any) => {
@@ -58,7 +59,7 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 		return (
 			<Month key={item} firstDay={firstDay} markedDates={markedDates} isEdge={isEdge} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
 		)
-	}, [date, markedDates, otherProps?.styles]);
+	}, [date, markedDates, otherProps?.styles, firstDay]);
 
 	const onScrollBeginDrag = () => {
 		disablePanChange(true);
@@ -108,9 +109,10 @@ const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
 
 	}, [date, updateSource])
 
+
 	return (
 		<InfiniteList
-			key="list"
+			key={`list_${firstDay}`}
 			isHorizontal
 			mode="month"
 			ref={list}

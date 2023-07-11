@@ -35,12 +35,13 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 	const { initDate, layout, updateMonthPosition, dataSource, isEdge, markedDates, disablePanChange, firstDay, ...otherProps } = props;
 	const context = useContext(CalendarContext)
 	const { date, prevDate, updateSource } = context;
-	const initialIndex = useMemo(() => dataSource.findIndex(item => sameWeek(item, initDate, firstDay)), [])
+	const initialIndex = useMemo(() => dataSource.findIndex(item => sameWeek(item, initDate, firstDay)), [firstDay])
 	const list = useRef<any>();
 	const prevWeek = useRef<number>(moment(date).day());
 	// state
 	const extraWeekData = {
 		date: context.date,
+		firstDay
 	}
 
 
@@ -72,7 +73,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 		return (
 			<Week key={item} firstDay={firstDay} markedDates={markedDates} layout={layout} current={date} date={item} onDayPress={onDayPress} containerWidth={layout.containerWidth} {...otherProps} />
 		)
-	}, [date, markedDates, otherProps?.styles]);
+	}, [date, markedDates, firstDay, otherProps?.styles]);
 
 
 	const onDayPress = (value: string) => {
@@ -115,12 +116,12 @@ const WeekCalendar: React.FC<WeekCalendarProps> = (props) => {
 			list.current?.scrollToIndex?.(index, false);
 		}
 		
-	}, [date, updateSource])
+	}, [date, updateSource, firstDay])
 
 
 	return (
 		<InfiniteList
-			key="week-list"
+			key={`week-list_${firstDay}`}
 			mode="week"
 			isHorizontal
 			ref={list}

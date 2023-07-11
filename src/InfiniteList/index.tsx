@@ -170,9 +170,6 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
             style={style}
             scrollViewProps={scrollViewPropsMemo}
             onVisibleIndicesChanged={_onVisibleIndicesChanged}
-            onItemLayout={(index: number) => {
-                console.log('index :>> ', index);
-            }}
         />
     );
 };

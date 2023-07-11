@@ -1,6 +1,6 @@
 {
   "name": "react-native-switch-month-week",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "description": "react native calendar with a week and month view",
   "main": "src/index.ts",
   "scripts": {

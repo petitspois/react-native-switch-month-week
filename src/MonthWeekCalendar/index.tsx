@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, Animated, PanResponder, TouchableOp
 import CalendarContext from '../Context';
 import WeekDaysNames from './WeekDaysNames';
 import constants from '../Utils/constants';
-import { getRowAboveTheWeek, generateDates} from '../Utils';
+import { getRowAboveTheWeek, generateDates } from '../Utils';
 import { MonthWeekCalendarProps, Mode } from './type'
 import { DATE_FORMAT } from '../Constants';
 import WeekCalendar from './WeekCalendar';
@@ -16,12 +16,13 @@ const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const { calendarWidth, markedDates, theme, locale, customReservation, noEventsText, CalendarContainerView, containerWrapperStyle, firstDay=0, modeType = 'Both', isReservation = true, isKnob = true, defaultOpenMode='Week' } = props;
+	const { calendarWidth, markedDates, theme, locale, customReservation, noEventsText, containerWrapperStyle, firstDay = 0, modeType = 'Both', isReservation = true, isKnob = true, defaultOpenMode = 'Week' } = props;
+	
 	const context = useContext(CalendarContext)
 	const { defaultDate } = context;
 	const initDate = defaultDate ?? moment().format(DATE_FORMAT);
 	const styles = useMemo(() => styleConstructor(theme), [theme]);
-	const CalendarContainerViewWrap = CalendarContainerView ?? View;
+	const CalendarContainerViewWrap = View;
 	//var
 	const containerWidth = calendarWidth || windowWidth;
 	const itemWidth = Math.floor(containerWidth / 7);
@@ -161,7 +162,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const panResponder = useRef(
 		PanResponder.create({
 			onMoveShouldSetPanResponder: (evt, gestureState) => {
-				if(modeType === 'Month' || modeType === 'Week') return false;
+				if (modeType === 'Month' || modeType === 'Week') return false;
 				return isAValidMovement(gestureState.dx, gestureState.dy)
 			},
 			onPanResponderGrant: (evt, gestureState) => {
@@ -207,6 +208,10 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 		})
 	).current;
 
+	// first day update postion
+	useEffect(() => {
+		updateMonthPosition(getRowAboveTheWeek(initDate, firstDay));
+	}, [firstDay])
 
 
 	// 月定位
@@ -226,23 +231,23 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	})
 
 	useEffect(() => {
-		if(defaultOpenMode === 'Month'){
+		if (defaultOpenMode === 'Month') {
 			setTimeout(() => {
 				openCalendar();
 			}, 1000);
 		}
 	}, [])
-	
+
 
 	return (
 		<View style={[styles.containerWrapper]}>
 			<View style={[styles.weekNamesContainer]}>
-				<WeekDaysNames 
-					firstDay={firstDay} 
-					locale={locale} 
-					styles={styles} 
-					layout={{ containerWidth, itemWidth, itemHeight }} 
-					/>
+				<WeekDaysNames
+					firstDay={firstDay}
+					locale={locale}
+					styles={styles}
+					layout={{ containerWidth, itemWidth, itemHeight }}
+				/>
 			</View>
 			<CalendarContainerViewWrap>
 				<View {...panResponder.panHandlers} style={[styles.calendar, styles.containerWrapperShadow, containerWrapperStyle]}>
@@ -253,7 +258,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 								<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
 									<MonthCalendar
 										initDate={initDate}
-										firstDay={firstDay} 
+										firstDay={firstDay}
 										updateMonthPosition={updateMonthPosition}
 										disablePanChange={handlerDisablePan}
 										layout={{ containerWidth, itemWidth, itemHeight }}
@@ -275,6 +280,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 									zIndex: weekZIndex,
 									width: containerWidth,
 									height: itemWidth,
+									backgroundColor: 'pink'
 								}}
 							>
 								<WeekCalendar
