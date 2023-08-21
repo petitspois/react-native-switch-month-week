@@ -157,7 +157,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	 *  TODO: month week area
 	 */
 	const isAValidMovement = (distanceX: number, distanceY: number) => {
-		return Math.abs(distanceY) > 4 && !disablePan.current;
+		return Math.abs(distanceY) > 3 && !disablePan.current;
 	};
 	const panResponder = useRef(
 		PanResponder.create({
@@ -253,8 +253,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 				<View {...panResponder.panHandlers} style={[styles.calendar, styles.containerWrapperShadow, containerWrapperStyle]}>
 					<View>
 						{
-							(modeType === 'Both' || modeType === 'Month') &&
-							<Animated.View style={[{ overflow: 'hidden', height: animatedContainerHeight.current }]}>
+							<Animated.View style={[{ overflow: 'hidden', height: modeType === 'Week' ? 0 : animatedContainerHeight.current }]}>
 								<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
 									<MonthCalendar
 										initDate={initDate}
