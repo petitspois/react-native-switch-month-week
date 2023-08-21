@@ -157,7 +157,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	 *  TODO: month week area
 	 */
 	const isAValidMovement = (distanceX: number, distanceY: number) => {
-		return Math.abs(distanceY) > 5 && !disablePan.current;
+		return Math.abs(distanceY) > 4 && !disablePan.current;
 	};
 	const panResponder = useRef(
 		PanResponder.create({

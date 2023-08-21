@@ -13,7 +13,7 @@ const Example = () => {
         dotBackgroundColor: '#3CA0AE',
         agendaItemTextColor: '#3CA0AE',
     })
-    const [firstDay, setFirstDay] = useState(0)
+    const [firstDay, setFirstDay] = useState(6)
     const [date, setDate] = useState('2023-04-13')
     const [currentMonth, setCurrentMonth] = useState<string>(moment().startOf('month').format('YYYY-MM-DD'))
     const [markedDates, setMarkedDates] = useState({

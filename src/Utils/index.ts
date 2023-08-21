@@ -217,11 +217,14 @@ export function getMonthDates(date: string, firstDayOfWeek = 0, showSixWeeks = f
 	if (day !== ldow) {
 		to.addDays((ldow + 7 - day) % 7);
 	}
-	const daysForSixWeeks = (daysBefore + days.length) / 6 >= 6;
 
 	if (showSixWeeks) {
 		to.addDays(7);
-		if (daysBefore + days.length === 28) {
+		// console.log('daysBefore :>> ',firstDayOfWeek, date, daysBefore, days.length);
+		if (
+			daysBefore === firstDayOfWeek &&
+			days.length === 28
+		) {
 			to.addDays(7);
 		}
 	}
