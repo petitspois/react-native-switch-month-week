@@ -34,13 +34,13 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const pressedHeightRef = useRef(itemHeight);
 	const monthPositionRef = useRef<number>((getRowAboveTheWeek(initDate, firstDay)) * itemHeight)
 	const modeRef = useRef<Mode>('week');
+	const modeTypeRef = useRef(modeType);
 	const reservationRef = useRef<View>(null);
 	const disablePan = useRef<boolean>(false);
 	//state
 	const [monthDates, weekDates] = useMemo(() => generateDates(initDate, firstDay), [initDate, firstDay]);
 	const monthDatesMinMax = useMemo(() => [monthDates[0], monthDates[monthDates.length - 1]], [monthDates])
 	const [mode, setMode] = useState<'week' | 'month'>('week')
-
 	const disablePanTimeRef = useRef<any>(null);
 	const handlerDisablePan = (disabled: boolean) => {
 		if (disablePan.current !== disabled) {
@@ -162,7 +162,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	const panResponder = useRef(
 		PanResponder.create({
 			onMoveShouldSetPanResponder: (evt, gestureState) => {
-				if (modeType === 'Month' || modeType === 'Week') return false;
+				if (modeTypeRef.current === 'Month' || modeTypeRef.current === 'Week') return false;
 				return isAValidMovement(gestureState.dx, gestureState.dy)
 			},
 			onPanResponderGrant: (evt, gestureState) => {
@@ -239,6 +239,11 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	}, [])
 
 
+	useEffect(() => {
+		modeTypeRef.current = modeType;
+	}, [modeType])
+	
+
 	return (
 		<View style={[styles.containerWrapper]}>
 			<View style={[styles.weekNamesContainer]}>
@@ -253,8 +258,8 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 				<View {...panResponder.panHandlers} style={[styles.calendar, styles.containerWrapperShadow, containerWrapperStyle]}>
 					<View>
 						{
-							<Animated.View style={[{ overflow: 'hidden', height: modeType === 'Week' ? 0 : animatedContainerHeight.current }]}>
-								<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden' }}>
+							<Animated.View style={[{ overflow: 'hidden',  height: modeType === 'Week' ? StyleSheet.hairlineWidth : animatedContainerHeight.current}]}>
+								<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden'}}>
 									<MonthCalendar
 										initDate={initDate}
 										firstDay={firstDay}
@@ -292,7 +297,8 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 									isEdge={isEdge}
 									styles={styles}
 								/>
-							</Animated.View>}
+							</Animated.View>
+						}
 					</View>
 					{isKnob && renderKnob()}
 				</View>
