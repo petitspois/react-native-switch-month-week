@@ -117,6 +117,47 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
     }
 
 
+    const onScroll = useCallback(
+        (event, offsetX, offsetY) => {
+    
+          const {x, y} = event.nativeEvent.contentOffset;
+          const newPageIndex = Math.round(isHorizontal ? x / pageWidth : y / pageHeight);
+    
+          if (pageIndex.current !== newPageIndex) {
+            if (pageIndex.current !== undefined) {
+              onPageChange?.(newPageIndex, pageIndex.current, {scrolledByUser: scrolledByUser.current});
+              scrolledByUser.current = false;
+    
+              isOnEdge.current = false;
+              isNearEdge.current = false;
+    
+              if (newPageIndex === 0 || newPageIndex === data.length - 1) {
+                isOnEdge.current = true;
+              } else if (
+                onReachNearEdgeThreshold &&
+                !inRange(newPageIndex, onReachNearEdgeThreshold, data.length - onReachNearEdgeThreshold)
+              ) {
+                isNearEdge.current = true;
+              }
+            }
+    
+            if (isHorizontal && constants.isAndroid) {
+              // NOTE: this is done only to handle 'onMomentumScrollEnd' not being called on Android
+              setTimeout(() => {
+                onMomentumScrollEnd(event);
+              }, 100);
+            }
+    
+            pageIndex.current = newPageIndex;
+          }
+    
+          props.onScroll?.(event, offsetX, offsetY);
+        },
+        [props.onScroll, onPageChange, data.length]
+      );
+
+
+
     const onMomentumScrollEnd = useCallback(
         event => {
             if (pageIndex.current) {
@@ -169,7 +210,8 @@ const InfiniteList = (props: InfiniteListProps, ref: any) => {
             scrollThrottle={20}
             style={style}
             scrollViewProps={scrollViewPropsMemo}
-            onVisibleIndicesChanged={_onVisibleIndicesChanged}
+            onScroll={onScroll}
+            // onVisibleIndicesChanged={_onVisibleIndicesChanged}
         />
     );
 };
