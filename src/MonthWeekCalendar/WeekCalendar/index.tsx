@@ -27,6 +27,7 @@ interface WeekCalendarProps {
 	isEdge: (date: string) => { isStartEdge: boolean, isEndEdge: boolean }
 	disablePanChange: (disabled: boolean) => void;
 	styles: ReturnStyles;
+	isLunar?: boolean;
 
 }
 

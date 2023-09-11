@@ -32,6 +32,7 @@ export interface MonthWeekCalendarProps {
     noEventsText?: string;
     CalendarContainerView?: React.ComponentType;
     containerWrapperStyle?: StyleProp<ViewStyle>;
+    isLunar?: boolean;
 }
 
 export type Mode = 'week' | 'month';

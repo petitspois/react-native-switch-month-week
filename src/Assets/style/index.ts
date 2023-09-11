@@ -67,6 +67,11 @@ export const styleConstructor = (theme = {}) => {
             fontWeight: 'bold',
             color: '#111',
         },
+        dayLunar: {
+            marginBottom: 2,
+            fontSize: 10,
+            color: '#111',
+        },
         dot: {
             position: 'absolute',
             left: '50%',
@@ -76,6 +81,12 @@ export const styleConstructor = (theme = {}) => {
             borderRadius: 100,
             backgroundColor: appStyle.dotBackgroundColor,
             transform: [{ translateX: -appStyle.dotSize / 2 }],
+        },
+        dotLunar: {
+            width: appStyle.dotSize,
+            height: appStyle.dotSize,
+            borderRadius: 100,
+            backgroundColor: appStyle.dotBackgroundColor,
         },
         center: {
             justifyContent: 'center',

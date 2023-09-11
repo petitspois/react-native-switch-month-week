@@ -7,6 +7,7 @@ import moment from 'moment';
 const Example = () => {
     const [, updateState] = useState<any>();
 	const forceUpdate = useCallback(() => updateState({}), []);
+    const [isLunar, setIsLunar] = useState(true);
     const [theme, setTheme] = useState<any>({
         todayTextColor: '#3CA0AE',
         selectedTodayButtonBackgroundColor: '#3CA0AE',
@@ -17,9 +18,9 @@ const Example = () => {
     const [date, setDate] = useState('2023-04-13')
     const [currentMonth, setCurrentMonth] = useState<string>(moment().startOf('month').format('YYYY-MM-DD'))
     const [markedDates, setMarkedDates] = useState({
-        '2023-05-13': { marked: true, markedColor: '#000', data: [{ title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' }] },
-        '2023-06-22': { marked: true, markedColor: '#000', data: [{ title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' }] },
-        '2023-06-26': {
+        '2023-09-10': { marked: true, markedColor: '#000', data: [{ title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' }] },
+        '2023-09-11': { marked: true, markedColor: '#000', data: [{ title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' }] },
+        '2023-09-12': {
             marked: true, markedColor: '#000', data: [
                 {
                     title: 'Yoov代码走读',
@@ -122,7 +123,7 @@ const Example = () => {
                 },
             ]
         },
-        '2023-06-27': { marked: true, markedColor: '#000', data: [{ title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' }] },
+        '2023-09-13': { marked: true, markedColor: '#000', data: [{ title: 'Yoov代码走读', description: '下午5:00- 5:00 11F高速会议室' }] },
     })
 
     useEffect(() => {
@@ -146,6 +147,9 @@ const Example = () => {
         //     forceUpdate()
         // }, 6000)
 
+        setTimeout(() => {
+            setIsLunar(false)
+        }, 6000);
        
     }, [])
 
@@ -157,11 +161,13 @@ const Example = () => {
             </View>
             <MonthWeekCalendarProvider
                 // defaultDate='2021-04-13'
+                key={isLunar+''}
                 onMonthChange={(date, type) => {
                     setCurrentMonth(date)
                 }}>
                 <MonthWeekCalendar
                     firstDay={firstDay}
+                    isLunar={isLunar}
                     locale={'cn'}
                     theme={theme}
                     markedDates={markedDates}

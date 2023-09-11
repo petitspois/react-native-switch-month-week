@@ -22,7 +22,7 @@ const Day = React.memo((props: any) => {
 
     const styles = useMemo(() => props.styles, [props.styles]);
 
-    const { onDayPress, current, date, disabled, layout, isEdge, markedDates } = props;
+    const { onDayPress, current, date, disabled, layout, isEdge, markedDates, isLunar } = props;
     const _onDayPress = useCallback(() => {
         if (current !== date.toString('yyyy-MM-dd')) {
             onDayPress(date.toString('yyyy-MM-dd'))
@@ -34,7 +34,7 @@ const Day = React.memo((props: any) => {
         height: layout.itemHeight
     }
 
-    const itemInnerEdge = layout.itemHeight * 0.7
+    const itemInnerEdge = isLunar ? layout.itemHeight * 0.46 : layout.itemHeight * 0.7
     const itemInnerStyle = {
         overflow: 'hidden',
         width: itemInnerEdge,
@@ -60,6 +60,11 @@ const Day = React.memo((props: any) => {
         return !!markedDates?.[dateStr]?.marked ? styles.dot : undefined;
     }, [markedDates, styles])
 
+    const dotLunarStyle = useMemo(() => {
+        const dateStr = date.toString('yyyy-MM-dd');
+        return !!markedDates?.[dateStr]?.marked ? styles.dotLunar : undefined;
+    }, [markedDates, styles])
+
     const textStyle = useMemo(() => {
         const today = moment().format('YYYY-MM-DD');
         const dateStr = date.toString('yyyy-MM-dd');
@@ -77,12 +82,19 @@ const Day = React.memo((props: any) => {
     }, [current, disabled, styles])
 
     return (
-        <TouchableOpacity activeOpacity={1} onPress={_onDayPress}>
+        <TouchableOpacity activeOpacity={1} onPress={_onDayPress} >
             <View style={[itemContainerStyle, styles.center]} >
                 <View style={[styles.center, selectedDayStyle, itemInnerStyle]}>
                     <Text style={[styles.dayText, textStyle]}>{date.getDate()}</Text>
-                    <View style={[dotStyle]}></View>
+                    {!isLunar && <View style={[dotStyle]}></View>}
                 </View>
+                {
+                    isLunar &&
+                    <View style={[styles.dayLunarWrap, styles.center]}>
+                        <Text style={[styles.dayLunar]}>初一</Text>
+                        <View style={[dotLunarStyle]}></View>
+                    </View>
+                }
             </View>
         </TouchableOpacity>
     )

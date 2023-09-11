@@ -16,7 +16,21 @@ const { width: windowWidth } = Dimensions.get('window');
 
 const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 
-	const { calendarWidth, markedDates, theme, locale, customReservation, noEventsText, containerWrapperStyle, firstDay = 0, modeType = 'Both', isReservation = true, isKnob = true, defaultOpenMode = 'Week' } = props;
+	const { 
+		calendarWidth, 
+		markedDates, 
+		theme, 
+		locale, 
+		customReservation, 
+		noEventsText, 
+		containerWrapperStyle, 
+		firstDay = 0, 
+		modeType = 'Both', 
+		isReservation = true, 
+		isKnob = true, 
+		defaultOpenMode = 'Week',
+		isLunar = false,
+	} = props;
 	
 	const context = useContext(CalendarContext)
 	const { defaultDate } = context;
@@ -26,7 +40,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 	//var
 	const containerWidth = calendarWidth || windowWidth;
 	const itemWidth = Math.floor(containerWidth / 7);
-	const itemHeight = containerWidth / 8;
+	const itemHeight = isLunar ? containerWidth / 8 + 12 : containerWidth / 8;
 	const monthHeight = itemHeight * 6;
 	const monthHalfHeight = monthHeight / 2;
 	//ref
@@ -261,6 +275,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 							<Animated.View style={[{ overflow: 'hidden',  height: modeType === 'Week' ? StyleSheet.hairlineWidth : animatedContainerHeight.current}]}>
 								<Animated.View style={{ transform: [{ translateY: monthPositionY }], overflow: 'hidden'}}>
 									<MonthCalendar
+										isLunar={isLunar}
 										initDate={initDate}
 										firstDay={firstDay}
 										updateMonthPosition={updateMonthPosition}
@@ -287,6 +302,7 @@ const MonthWeekCalendar: React.FC<MonthWeekCalendarProps> = (props) => {
 								}}
 							>
 								<WeekCalendar
+									isLunar={isLunar}
 									initDate={initDate}
 									firstDay={firstDay}
 									updateMonthPosition={updateMonthPosition}

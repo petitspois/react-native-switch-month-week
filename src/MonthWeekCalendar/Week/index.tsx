@@ -14,7 +14,7 @@ const Week = React.memo((props: any) => {
     const pageData = getWeekDates(date, firstDay, null) ?? []
     
     return (
-        <View style={[otherProps.styles.weekContainer, { width: containerWidth}]}>
+        <View style={[otherProps.styles.weekContainer, { width: containerWidth}]} >
             {
                 pageData.map((value, index) => {
                     return (

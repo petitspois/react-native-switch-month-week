@@ -24,6 +24,7 @@ interface MonthCalendarProps {
 	isEdge: (date: string) => { isStartEdge: boolean, isEndEdge: boolean }
 	disablePanChange: (disabled: boolean) => void;
 	styles: ReturnStyles;
+	isLunar?: boolean;
 }
 
 const MonthCalendar: React.FC<MonthCalendarProps> = (props) => {
