@@ -2,6 +2,8 @@ import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-nati
 import React, { useCallback, useMemo, useContext } from 'react'
 import moment from 'moment';
 import _ from 'lodash';
+import chineseLunar from "../../Utils/chinese-lunar";
+
 
 
 const areEqual = (prevProps, nextProps) => {
@@ -22,7 +24,7 @@ const Day = React.memo((props: any) => {
 
     const styles = useMemo(() => props.styles, [props.styles]);
 
-    const { onDayPress, current, date, disabled, layout, isEdge, markedDates, isLunar } = props;
+    const { onDayPress, current, date, disabled, layout, isEdge, markedDates, isLunar, mode } = props;
     const _onDayPress = useCallback(() => {
         if (current !== date.toString('yyyy-MM-dd')) {
             onDayPress(date.toString('yyyy-MM-dd'))
@@ -81,6 +83,15 @@ const Day = React.memo((props: any) => {
 
     }, [current, disabled, styles])
 
+    const getLunar = useCallback((date: any) => {
+        let dateClone = date?.clone();
+        if(mode === 'month'){
+            dateClone.addHours(-8);
+        }
+        var lunar = chineseLunar.solarToLunar(dateClone.toDate());
+        return chineseLunar.format(lunar, 'D');
+    }, [date, mode])
+
     return (
         <TouchableOpacity activeOpacity={1} onPress={_onDayPress} >
             <View style={[itemContainerStyle, styles.center]} >
@@ -91,7 +102,9 @@ const Day = React.memo((props: any) => {
                 {
                     isLunar &&
                     <View style={[styles.dayLunarWrap, styles.center]}>
-                        <Text style={[styles.dayLunar]}>初一</Text>
+                        <Text style={[styles.dayLunar, textStyle]}>
+                            {getLunar(date)}
+                        </Text>
                         <View style={[dotLunarStyle]}></View>
                     </View>
                 }

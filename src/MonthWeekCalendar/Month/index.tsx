@@ -12,13 +12,12 @@ const areEqual = (prevProps, nextProps) => {
 const Month = React.memo((props: any) => {
     const { date, containerWidth, firstDay, ...otherProps } = props;
     const pageData = getMonthDates(date, firstDay, true) ?? []
-    
     return (
         <View style={[otherProps.styles.monthContainer, { width: containerWidth }]}>
             {
                 pageData.map((value, index) => {
                     return (
-                        <Day key={value} disabled={!sameMonth(date, value.toString('yyyy-MM-dd'))} date={value} {...otherProps} />
+                        <Day mode='month' key={value} disabled={!sameMonth(date, value.toString('yyyy-MM-dd'))} date={value} {...otherProps} />
                     )
                 })
             }

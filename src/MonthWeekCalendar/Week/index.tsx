@@ -12,13 +12,12 @@ const Week = React.memo((props: any) => {
     const { date, containerWidth, firstDay, ...otherProps } = props;  
 
     const pageData = getWeekDates(date, firstDay, null) ?? []
-    
     return (
         <View style={[otherProps.styles.weekContainer, { width: containerWidth}]} >
             {
                 pageData.map((value, index) => {
                     return (
-                        <Day key={index} date={value} {...otherProps} />
+                        <Day mode={'week'} key={index} date={value} {...otherProps} />
                     )
                 })
             }
